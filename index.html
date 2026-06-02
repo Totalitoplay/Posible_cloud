@@ -415,7 +415,7 @@ async function doLogin() {
   btn.innerHTML = '<span class="spinner"></span> Autenticando…';
   btn.disabled = true;
 
-try {
+  try {
     // 1. Convertimos los datos a formato URL-Encoded
     const params = new URLSearchParams();
     params.append('username', user);
@@ -432,7 +432,7 @@ try {
     params.append('encrypt', 'false');
     params.append('versionApp', '1.26');
 
-    // 2. Hacemos el fetch directamente (sin usar apiPost) para forzar el Content-Type correcto
+    // 2. Hacemos el fetch directamente para forzar el Content-Type correcto
     const res = await fetch(BASE_URL() + '/dsfc/login', {
       method: 'POST',
       headers: {
@@ -440,13 +440,19 @@ try {
       },
       body: params.toString()
     });
-    st data = await res.json();
-    if (ok && data.access_token) {
+    
+    // CORRECCIÓN: "const" en lugar de "st"
+    const data = await res.json();
+    
+    // CORRECCIÓN: Usar "res.ok" en lugar de "ok"
+    if (res.ok && data.access_token) {
       authToken = data.access_token;
       currentUser = user;
+      
       // Guardar en localStorage para no pedir login otra vez
       localStorage.setItem('dsfc_token', authToken);
       localStorage.setItem('dsfc_user', currentUser);
+      
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('appScreen').style.display = 'block';
       document.getElementById('sessionUser').textContent = user;
