@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Búsqueda QR & Etiquetado</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0f2f5;
+    --card: #ffffff;
+    --blue: #0057FF;
+    --blue-light: #e8efff;
+    --blue-dark: #0040cc;
+    --gray: #8a93a2;
+    --gray-light: #e8eaed;
+    --text: #1a1d23;
+    --text-sub: #5a6272;
+    --red: #e53935;
+    --green: #00c853;
+    --border: #dde1e8;
+    --radius: 12px;
+    --shadow: 0 2px 16px rgba(0,87,255,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* TOOLBAR */
+  .toolbar {
+    background: var(--blue);
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    height: 56px;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,87,255,0.25);
+  }
+  .toolbar .back-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+  }
+  .toolbar h1 {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    flex: 1;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 56px;
+    z-index: 99;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 14px 8px;
+    border: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .tab-btn.active {
+    color: var(--blue);
+  }
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 16px; right: 16px;
+    height: 3px;
+    background: var(--blue);
+    border-radius: 3px 3px 0 0;
+  }
+
+  /* CONTENT */
+  .content {
+    padding: 20px 16px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* PAGE TITLE */
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .page-sub {
+    font-size: 14px;
+    color: var(--text-sub);
+    margin-bottom: 20px;
+  }
+
+  /* SCAN CARD */
+  .scan-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    border: 2px dashed var(--border);
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 20px;
+    user-select: none;
+  }
+  .scan-card:hover {
+    border-color: var(--blue);
+    background: var(--blue-light);
+  }
+  .scan-card svg {
+    display: block;
+    margin: 0 auto 14px;
+  }
+  .scan-card .scan-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--blue);
+  }
+  .scan-card .scan-hint {
+    font-size: 12px;
+    color: var(--gray);
+    margin-top: 4px;
+  }
+
+  /* QR FIELD */
+  .field-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-sub);
+    margin-bottom: 6px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+  .field-row {
+    display: flex;
+    align-items: center;
+    background: var(--gray-light);
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    padding: 0 12px;
+    height: 44px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .field-row:focus-within {
+    border-color: var(--blue);
+  }
+  .field-row input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    height: 100%;
+    letter-spacing: 0.5px;
+  }
+  .field-row input::placeholder { color: var(--gray); font-family: 'DM Sans', sans-serif; }
+  .field-row .qr-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+  .field-row .qr-icon-btn:hover { background: var(--blue-light); }
+
+  /* RESULT CARD */
+  .result-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--blue);
+    display: none;
+    animation: fadeSlide 0.3s ease;
+  }
+  .result-card.visible { display: block; }
+  .result-card .result-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--gray-light);
+    font-size: 14px;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-row .rk { color: var(--text-sub); }
+  .result-row .rv { font-weight: 600; font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+
+  /* STATUS BADGE */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .badge.ok { background: #e6f9ef; color: var(--green); }
+  .badge.error { background: #fde8e8; color: var(--red); }
+
+  /* ERROR */
+  .error-msg {
+    background: #fde8e8;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--red);
+    font-weight: 600;
+    display: none;
+    margin-bottom: 12px;
+    animation: fadeSlide 0.2s ease;
+  }
+  .error-msg.visible { display: flex; align-items: center; gap: 8px; }
+
+  /* BUTTON */
+  .btn-primary {
+    width: 100%;
+    height: 50px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.2px;
+    margin-top: 4px;
+    box-shadow: 0 4px 14px rgba(0,87,255,0.3);
+  }
+  .btn-primary:hover { background: var(--blue-dark); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: var(--gray); box-shadow: none; cursor: not-allowed; }
+
+  .btn-secondary {
+    width: 100%;
+    height: 46px;
+    background: white;
+    color: var(--blue);
+    border: 2px solid var(--blue);
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 10px;
+  }
+  .btn-secondary:hover { background: var(--blue-light); }
+
+  /* ETIQUETADO */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-header {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-header svg { flex-shrink: 0; }
+
+  .device-list { list-style: none; }
+  .device-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-light);
+    gap: 12px;
+    animation: fadeSlide 0.25s ease both;
+  }
+  .device-item:last-child { border-bottom: none; }
+  .device-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--blue-light);
+    color: var(--blue);
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .device-info { flex: 1; min-width: 0; }
+  .device-serial {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .device-meta { font-size: 12px; color: var(--gray); margin-top: 2px; }
+  .device-status { flex-shrink: 0; }
+
+  /* SCANNER OVERLAY */
+  .scanner-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 200;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .scanner-overlay.open { display: flex; }
+  .scanner-box {
+    width: 260px;
+    height: 260px;
+    position: relative;
+    margin-bottom: 30px;
+  }
+  .scanner-box .corner {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-color: var(--blue);
+    border-style: solid;
+  }
+  .corner.tl { top: 0; left: 0; border-width: 4px 0 0 4px; border-radius: 4px 0 0 4px; }
+  .corner.tr { top: 0; right: 0; border-width: 4px 4px 0 0; border-radius: 0 4px 0 0; }
+  .corner.bl { bottom: 0; left: 0; border-width: 0 0 4px 4px; border-radius: 0 0 0 4px; }
+  .corner.br { bottom: 0; right: 0; border-width: 0 4px 4px 0; border-radius: 0 0 4px 0; }
+  .scan-line {
+    position: absolute;
+    left: 6px; right: 6px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--blue), transparent);
+    animation: scanMove 1.8s ease-in-out infinite;
+    top: 10%;
+  }
+  @keyframes scanMove {
+    0% { top: 10%; }
+    50% { top: 88%; }
+    100% { top: 10%; }
+  }
+  .scanner-inner {
+    width: 100%; height: 100%;
+    background: rgba(255,255,255,0.04);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .scanner-txt {
+    color: white;
+    font-size: 14px;
+    text-align: center;
+    opacity: 0.7;
+    margin-bottom: 24px;
+    max-width: 240px;
+  }
+  .scanner-close {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    padding: 10px 32px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .scanner-close:hover { background: rgba(255,255,255,0.25); }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <button class="back-btn" onclick="history.back()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <h1>Instalación de Equipos</h1>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('qr', this)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:inline;margin-right:5px;vertical-align:-2px"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13-2h-2v2h2v-2zm0 4h-2v2h2v-2zm2 2h-2v2h2v-2zm-4 0h-2v2h2v-2zm2-4h-2v2h2v-2zm-4-2h-2v2h2v-2zm4 4h-2v2h2v-2zm2-2h-2v2h2v-2z"/></svg>
+    Búsqueda QR
+  </button>
+  <button class="tab-btn" onclick="switchTab('etiqueta', this)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:5px;vertical-align:-2px"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+    Etiquetado
+  </button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- PANEL: BÚSQUEDA QR -->
+  <div class="panel active" id="panel-qr">
+    <p class="page-title">Búsqueda por QR</p>
+    <p class="page-sub">Escanea o ingresa el código QR del splitter</p>
+
+    <!-- Scan card -->
+    <div class="scan-card" id="scanCardQr" onclick="openScanner('qr')">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="3" width="7" height="7" rx="1" stroke="#0057FF" stroke-width="1.8"/>
+        <rect x="14" y="3" width="7" height="7" rx="1" stroke="#0057FF" stroke-width="1.8"/>
+        <rect x="3" y="14" width="7" height="7" rx="1" stroke="#0057FF" stroke-width="1.8"/>
+        <rect x="5" y="5" width="3" height="3" fill="#0057FF" rx="0.5"/>
+        <rect x="16" y="5" width="3" height="3" fill="#0057FF" rx="0.5"/>
+        <rect x="5" y="16" width="3" height="3" fill="#0057FF" rx="0.5"/>
+        <path d="M14 14h2v2h-2zm4 0h2v2h-2zm-4 4h2v2h-2zm4 0h2v2h-2zm-2-2h2v2h-2z" fill="#0057FF"/>
+      </svg>
+      <div class="scan-label">Escanear código QR</div>
+      <div class="scan-hint">Toca para abrir la cámara</div>
+    </div>
+
+    <!-- Manual input -->
+    <div class="field-label">O ingresa el código manualmente</div>
+    <div class="field-row">
+      <input type="text" id="qrInput" placeholder="Ej. SPL-001-2024-XYZ" maxlength="30"
+        oninput="onQrInput(this.value)" />
+      <button class="qr-icon-btn" onclick="openScanner('qr')" title="Escanear QR">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+      </button>
+    </div>
+
+    <!-- Error -->
+    <div class="error-msg" id="qrError">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      <span id="qrErrorMsg">QR no válido o no encontrado en el sistema.</span>
+    </div>
+
+    <!-- Result -->
+    <div class="result-card" id="qrResult">
+      <div class="result-title">✓ Splitter Encontrado</div>
+      <div class="result-row"><span class="rk">Código QR</span><span class="rv" id="resQr">—</span></div>
+      <div class="result-row"><span class="rk">Tipo</span><span class="rv" id="resTipo">—</span></div>
+      <div class="result-row"><span class="rk">Nodo</span><span class="rv" id="resNodo">—</span></div>
+      <div class="result-row"><span class="rk">Estado</span><span id="resEstado">—</span></div>
+    </div>
+
+    <button class="btn-primary" id="btnBuscar" onclick="buscarQR()" disabled>Buscar</button>
+    <button class="btn-secondary" id="btnNuevoEscaneo" style="display:none" onclick="resetQR()">Escanear otro código</button>
+  </div>
+
+  <!-- PANEL: ETIQUETADO -->
+  <div class="panel" id="panel-etiqueta">
+    <p class="page-title">Etiquetado</p>
+    <p class="page-sub">Asigna el número de serie a cada equipo instalado</p>
+
+    <!-- Scan área para etiquetado -->
+    <div class="scan-card" onclick="openScanner('etiqueta')">
+      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#0057FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <div class="scan-label">Escanear equipo</div>
+      <div class="scan-hint">Lee el QR o código de barras del dispositivo</div>
+    </div>
+
+    <!-- Equipo activo -->
+    <div class="card" id="equipoActivo" style="display:none">
+      <div class="card-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0057FF" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Equipo Detectado
+      </div>
+      <div class="field-label">Número de serie</div>
+      <div class="field-row">
+        <input type="text" id="serieInput" placeholder="Ingresa o escanea el serial" />
+        <button class="qr-icon-btn" onclick="openScanner('etiqueta')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+        </button>
+      </div>
+      <div class="field-label">Tipo de equipo</div>
+      <div class="field-row">
+        <input type="text" id="tipoEquipo" placeholder="ONT / Splitter / Router..." />
+      </div>
+      <button class="btn-primary" onclick="agregarEtiqueta()">Agregar a lista</button>
+    </div>
+
+    <!-- Lista de equipos -->
+    <div class="card">
+      <div class="card-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0057FF" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Equipos Etiquetados
+        <span id="equipoCount" style="margin-left:auto;font-size:12px;font-weight:700;background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:20px">0</span>
+      </div>
+      <ul class="device-list" id="deviceList">
+        <li style="color:var(--gray);font-size:13px;text-align:center;padding:16px 0">Sin equipos registrados aún</li>
+      </ul>
+    </div>
+
+    <button class="btn-primary" id="btnGuardar" disabled onclick="guardarEtiquetado()">Guardar etiquetado</button>
+  </div>
+
+</div>
+
+<!-- SCANNER OVERLAY -->
+<div class="scanner-overlay" id="scannerOverlay">
+  <div class="scanner-box">
+    <div class="scanner-inner">
+      <div class="scan-line"></div>
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+    </div>
+  </div>
+  <p class="scanner-txt">Apunta la cámara al código QR o de barras</p>
+  <button class="scanner-close" onclick="simulateScan()">Simular escaneo</button>
+  <button class="scanner-close" style="background:transparent;margin-top:8px;opacity:0.5" onclick="closeScanner()">Cerrar</button>
+</div>
+
+<script>
+  let currentScanTarget = 'qr';
+  let equipos = [];
+  let qrFound = false;
+
+  function switchTab(tab, el) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+  }
+
+  function openScanner(target) {
+    currentScanTarget = target;
+    document.getElementById('scannerOverlay').classList.add('open');
+  }
+  function closeScanner() {
+    document.getElementById('scannerOverlay').classList.remove('open');
+  }
+
+  // Simula datos de escaneo
+  const mockQRData = {
+    'SPL-001-2024-ABC': { tipo: 'Splitter 1x8', nodo: 'NODO-CJU-045', estado: 'Disponible' },
+    'SPL-002-2024-XYZ': { tipo: 'Splitter 1x16', nodo: 'NODO-CJU-012', estado: 'En uso' },
+    'ONT-GH2-2024-J88': { tipo: 'ONT GPON', nodo: 'NODO-CJU-031', estado: 'Disponible' },
+  };
+  const mockSerials = ['SPL-001-2024-ABC','SPL-002-2024-XYZ','ONT-GH2-2024-J88','ONT-ZX4-2024-K12'];
+
+  function simulateScan() {
+    closeScanner();
+    const random = mockSerials[Math.floor(Math.random() * mockSerials.length)];
+
+    if (currentScanTarget === 'qr') {
+      document.getElementById('qrInput').value = random;
+      onQrInput(random);
+    } else {
+      document.getElementById('equipoActivo').style.display = 'block';
+      document.getElementById('serieInput').value = random;
+      document.getElementById('tipoEquipo').value = mockQRData[random]?.tipo || 'ONT GPON';
+    }
+  }
+
+  function onQrInput(val) {
+    document.getElementById('qrError').classList.remove('visible');
+    document.getElementById('qrResult').classList.remove('visible');
+    document.getElementById('btnNuevoEscaneo').style.display = 'none';
+    qrFound = false;
+    document.getElementById('btnBuscar').disabled = val.trim().length < 3;
+  }
+
+  function buscarQR() {
+    const code = document.getElementById('qrInput').value.trim().toUpperCase();
+    const data = mockQRData[code];
+
+    document.getElementById('qrError').classList.remove('visible');
+    document.getElementById('qrResult').classList.remove('visible');
+
+    if (!data) {
+      document.getElementById('qrErrorMsg').textContent = 'QR no válido o no encontrado en el sistema.';
+      document.getElementById('qrError').classList.add('visible');
+      return;
+    }
+
+    document.getElementById('resQr').textContent = code;
+    document.getElementById('resTipo').textContent = data.tipo;
+    document.getElementById('resNodo').textContent = data.nodo;
+
+    const estadoEl = document.getElementById('resEstado');
+    estadoEl.innerHTML = data.estado === 'Disponible'
+      ? `<span class="badge ok">● ${data.estado}</span>`
+      : `<span class="badge error">● ${data.estado}</span>`;
+
+    document.getElementById('qrResult').classList.add('visible');
+    document.getElementById('btnNuevoEscaneo').style.display = 'block';
+    document.getElementById('btnBuscar').disabled = true;
+    qrFound = true;
+  }
+
+  function resetQR() {
+    document.getElementById('qrInput').value = '';
+    document.getElementById('qrResult').classList.remove('visible');
+    document.getElementById('qrError').classList.remove('visible');
+    document.getElementById('btnNuevoEscaneo').style.display = 'none';
+    document.getElementById('btnBuscar').disabled = true;
+    qrFound = false;
+  }
+
+  function agregarEtiqueta() {
+    const serie = document.getElementById('serieInput').value.trim();
+    const tipo = document.getElementById('tipoEquipo').value.trim();
+    if (!serie) return;
+
+    equipos.push({ serie, tipo: tipo || 'Desconocido', idx: equipos.length + 1 });
+    renderDeviceList();
+
+    document.getElementById('serieInput').value = '';
+    document.getElementById('tipoEquipo').value = '';
+    document.getElementById('equipoActivo').style.display = 'none';
+    document.getElementById('btnGuardar').disabled = false;
+  }
+
+  function renderDeviceList() {
+    const list = document.getElementById('deviceList');
+    document.getElementById('equipoCount').textContent = equipos.length;
+
+    if (equipos.length === 0) {
+      list.innerHTML = '<li style="color:var(--gray);font-size:13px;text-align:center;padding:16px 0">Sin equipos registrados aún</li>';
+      return;
+    }
+
+    list.innerHTML = equipos.map((e, i) => `
+      <li class="device-item" style="animation-delay:${i*0.05}s">
+        <div class="device-num">${e.idx}</div>
+        <div class="device-info">
+          <div class="device-serial">${e.serie}</div>
+          <div class="device-meta">${e.tipo}</div>
+        </div>
+        <div class="device-status">
+          <span class="badge ok">● OK</span>
+        </div>
+      </li>
+    `).join('');
+  }
+
+  function guardarEtiquetado() {
+    alert(`✓ ${equipos.length} equipo(s) guardados correctamente.`);
+    equipos = [];
+    renderDeviceList();
+    document.getElementById('btnGuardar').disabled = true;
+  }
+
+  // Enter en input QR
+  document.getElementById('qrInput').addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && !document.getElementById('btnBuscar').disabled) buscarQR();
+  });
+</script>
+</body>
+</html>
