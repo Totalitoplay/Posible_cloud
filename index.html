@@ -415,21 +415,32 @@ async function doLogin() {
   btn.innerHTML = '<span class="spinner"></span> Autenticando…';
   btn.disabled = true;
 
-  try {
-    const { ok, data } = await apiPost('/dsfc/login', {
-      username: user,
-      password: pass,
-      grant_type: 'password',
-      latitud: '0', longitud: '0',
-      mac: '', ip: '',
-      sistemaOperativo: 'WEB',
-      tipoAplicacion: 'WEB',
-      idDispositivo: 'browser',
-      dispositivoAndroid: 'false',
-      encrypt: false,
-      versionApp: '1.26'
-    });
+try {
+    // 1. Convertimos los datos a formato URL-Encoded
+    const params = new URLSearchParams();
+    params.append('username', user);
+    params.append('password', pass);
+    params.append('grant_type', 'password');
+    params.append('latitud', '0');
+    params.append('longitud', '0');
+    params.append('mac', '');
+    params.append('ip', '');
+    params.append('sistemaOperativo', 'WEB');
+    params.append('tipoAplicacion', 'WEB');
+    params.append('idDispositivo', 'browser');
+    params.append('dispositivoAndroid', 'false');
+    params.append('encrypt', 'false');
+    params.append('versionApp', '1.26');
 
+    // 2. Hacemos el fetch directamente (sin usar apiPost) para forzar el Content-Type correcto
+    const res = await fetch(BASE_URL() + '/dsfc/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: params.toString()
+    });
+    st data = await res.json();
     if (ok && data.access_token) {
       authToken = data.access_token;
       currentUser = user;
