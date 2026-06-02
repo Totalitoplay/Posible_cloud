@@ -381,31 +381,33 @@ let currentUser = null;
 // ──────────────────────────────────────────────
 //  HELPERS HTTP
 // ──────────────────────────────────────────────
-async function apiPost(path, body, useAuth = false) {
+async function apiFetch(method, path, body, useAuth = true) {
   const headers = { 'Content-Type': 'application/json' };
   if (useAuth && authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  const opts = { method, headers };
+  if (body && !['GET','HEAD'].includes(method)) opts.body = JSON.stringify(body);
   const cleanBaseUrl = BASE_URL().replace(/\/$/, ''); 
   const cleanPath = path.startsWith('/') ? path : '/' + path;
   const res = await fetch(BASE_URL() + path, opts);
+
+  // Token expirado — limpiar sesión y pedir login de nuevo
+  if (res.status === 401) {
+    localStorage.removeItem('dsfc_token');
+    localStorage.removeItem('dsfc_user');
+    authToken = null; currentUser = null;
+    document.getElementById('appScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    showLoginError('Sesión expirada, inicia sesión de nuevo');
+    return { ok: false, status: 401, data: {} };
+  }
+
   const data = await res.json().catch(() => ({}));
   return { ok: res.ok, status: res.status, data };
 }
 
-async function apiGet(path) {
-  const headers = { 'Content-Type': 'application/json' };
-  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-  const res = await fetch(BASE_URL() + path, { method: 'GET', headers });
-  const data = await res.json().catch(() => ({}));
-  return { ok: res.ok, status: res.status, data };
-}
-
-async function apiPatch(path, body) {
-  const headers = { 'Content-Type': 'application/json' };
-  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-  const res = await fetch(BASE_URL() + path, { method: 'PATCH', headers, body: JSON.stringify(body) });
-  const data = await res.json().catch(() => ({}));
-  return { ok: res.ok, status: res.status, data };
-}
+const apiPost  = (path, body, useAuth = false) => apiFetch('POST',  path, body, useAuth);
+const apiGet   = (path)                         => apiFetch('GET',   path, null, true);
+const apiPatch = (path, body)                   => apiFetch('PATCH', path, body, true);
 
 // ──────────────────────────────────────────────
 //  AUTH
@@ -437,6 +439,9 @@ async function doLogin() {
     if (ok && data.access_token) {
       authToken = data.access_token;
       currentUser = user;
+      // Guardar en localStorage para no pedir login otra vez
+      localStorage.setItem('dsfc_token', authToken);
+      localStorage.setItem('dsfc_user', currentUser);
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('appScreen').style.display = 'block';
       document.getElementById('sessionUser').textContent = user;
@@ -456,6 +461,8 @@ async function doLogin() {
 function doLogout() {
   authToken = null;
   currentUser = null;
+  localStorage.removeItem('dsfc_token');
+  localStorage.removeItem('dsfc_user');
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('loginPass').value = '';
