@@ -169,16 +169,7 @@
   });
 </script>
 
-<!-- ===== CONFIG BANNER ===== -->
-<div id="configBanner" style="background:#fff3e0;border-bottom:2px solid #e65100;padding:12px 18px;font-family:'DM Sans',sans-serif;font-size:13px;color:#bf360c;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <strong>⚠️ Configuración requerida:</strong>
-  URL del proxy (Worker):
-  <input id="proxyInput" type="text" placeholder="https://dsfc-proxy.TU.workers.dev"
-    style="flex:1;min-width:260px;padding:6px 10px;border:1.5px solid #e65100;border-radius:6px;font-size:13px;font-family:monospace;outline:none"
-    oninput="window.PROXY_URL = this.value.trim()" />
-  <button onclick="saveCfg()" style="background:#e65100;color:white;border:none;padding:7px 16px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px">Guardar</button>
-  <button onclick="hideCfg()" style="background:transparent;color:#e65100;border:none;cursor:pointer;font-size:20px;margin-left:4px">✕</button>
-</div>
+
 <script>
   (function(){
     var saved = localStorage.getItem('dsfc_proxy');
