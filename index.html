@@ -176,48 +176,56 @@
         };
 
         // Función principal que consume el Worker
-        async function solicitarDatosReales() {
-            const indicadorConexion = document.getElementById('estado-conexion');
-            indicadorConexion.className = "badge bg-warning text-dark";
-            indicadorConexion.innerText = "Sincronizando...";
+    async function solicitarDatosReales() {
+    const indicadorConexion = document.getElementById('estado-conexion');
+    if(indicadorConexion) {
+        indicadorConexion.className = "badge bg-warning text-dark";
+        indicadorConexion.innerText = "Sincronizando...";
+    }
 
-            try {
-                let respuesta = await fetch(WORKER_URL);
-                if (!respuesta.ok) {
-                    throw new Error(`HTTP Error: ${respuesta.status}`);
-                }
-                
-                // Conversión de datos reales
-                let JSON_NOC = await respuesta.json();
-                
-                // Normalización de propiedades: Dependiendo de cómo mapee el backend,
-                // nos aseguramos de asignar los valores correspondientes.
-                datasetAlarmas = JSON_NOC.map((item, index) => {
-                    return {
-                        id: item.id || index,
-                        olt: item.olt || item.oltName || item.elemento || "ELEMENTO_DESCONOCIDO",
-                        tipo: (item.tipo || item.tipoAlarma || "CFO").toUpperCase().trim(),
-                        region: item.ubicacion || item.region || item.distrito || "N/A",
-                        clientes: item.clientesCount || item.userCount || item.afectados || 0,
-                        fecha: item.inicio || item.fechaInicio || "--/--/--"
-                    };
-                });
-
-                indicadorConexion.className = "badge bg-success";
-                indicadorConexion.innerText = "ONLINE";
-
-                renderizarContadores();
-                ejecutarFiltroGeneral();
-
-            } catch (error) {
-                console.error("Error en la sincronización:", error);
-                indicadorConexion.className = "badge bg-danger";
-                indicadorConexion.innerText = "ERROR DE ENLACE";
-                
-                const tbody = document.querySelector("#tablaMaster tbody");
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4"><i class="fa-solid fa-triangle-exclamation me-2"></i>No se pudo obtener respuesta de tu Worker. Verifica la validez de la Cookie interna.</td></tr>`;
-            }
+    try {
+        // Hace un GET limpio al Worker de Cloudflare
+        let respuesta = await fetch(WORKER_URL);
+        if (!respuesta.ok) {
+            throw new Error(`HTTP Error: ${respuesta.status}`);
         }
+        
+        let JSON_NOC = await respuesta.json();
+        
+        // MAPEADO COMPATIBLE: Extrae los nombres de variables idénticos al JSON del NOC original
+        datasetAlarmas = JSON_NOC.map((item, index) => {
+            return {
+                id: item.idAlarma || index,
+                // Si el JSON real usa otra propiedad, se mapea aquí (ej: item.olt o item.nombreElemento)
+                olt: item.olt || item.oltName || item.elemento || "EQUIPO_NOC",
+                tipo: (item.tipo || item.tipoAlarma || "CFO").toUpperCase().trim(),
+                region: item.ubicacion || item.region || item.distrito || "MÉXICO",
+                clientes: item.clientesCount || item.userCount || item.afectados || 0,
+                fecha: item.inicio || item.fechaInicio || "--:-- --/--"
+            };
+        });
+
+        if(indicadorConexion) {
+            indicadorConexion.className = "badge bg-success";
+            indicadorConexion.innerText = "ONLINE";
+        }
+
+        renderizarContadores();
+        ejecutarFiltroGeneral();
+
+    } catch (error) {
+        console.error("Error en la sincronización del frontend:", error);
+        if(indicadorConexion) {
+            indicadorConexion.className = "badge bg-danger";
+            indicadorConexion.innerText = "ERROR DE ENLACE";
+        }
+        
+        const tbody = document.querySelector("#tablaMaster tbody");
+        if(tbody) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4"><i class="fa-solid fa-triangle-exclamation me-2"></i>El Worker está vacío o Google Cloud Functions aún no le deposita datos.</td></tr>`;
+        }
+    }
+}
 
         // Calcula el total de elementos activos por categoría
         function renderizarContadores() {
