@@ -1,290 +1,703 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOC - Monitor Interno de Planta Externa</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/dist/min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f1f5f9;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
-        .navbar-noc {
-            background-color: #0f172a;
-            border-bottom: 3px solid #ea580c;
-        }
-        .card-indicador {
-            border: none;
-            border-radius: 12px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .card-indicador:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        .bg-cfo { background: linear-gradient(135deg, #dc2626, #991b1b); }
-        .bg-afo { background: linear-gradient(135deg, #d97706, #92400e); }
-        .bg-pow { background: linear-gradient(135deg, #2563eb, #1e40af); }
-        .bg-total { background: linear-gradient(135deg, #475569, #334155); }
-        
-        .tabla-contenedor {
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-        .status-dot {
-            height: 10px;
-            width: 10px;
-            border-radius: 50%;
-            display: inline-block;
-            background-color: #10b981;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSFC – QR & Etiquetado</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0f2f5;
+    --card: #ffffff;
+    --blue: #0057FF;
+    --blue-light: #e8efff;
+    --blue-dark: #0040cc;
+    --gray: #8a93a2;
+    --gray-light: #e8eaed;
+    --text: #1a1d23;
+    --text-sub: #5a6272;
+    --red: #e53935;
+    --green: #00c853;
+    --border: #dde1e8;
+    --radius: 12px;
+    --shadow: 0 2px 16px rgba(0,87,255,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* TOOLBAR */
+  .toolbar { background: var(--blue); color: white; display: flex; align-items: center; padding: 0 20px; height: 56px; gap: 14px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,87,255,0.25); }
+  .toolbar h1 { font-size: 17px; font-weight: 700; flex: 1; }
+
+  /* LOGIN */
+  #loginScreen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+  .login-box { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px 28px; width: 100%; max-width: 380px; }
+  .login-logo { text-align: center; margin-bottom: 24px; }
+  .login-logo svg { width: 56px; height: 56px; }
+  .login-title { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 4px; }
+  .login-sub { font-size: 13px; color: var(--text-sub); text-align: center; margin-bottom: 24px; }
+
+  /* TABS */
+  .tabs { display: flex; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 56px; z-index: 99; }
+  .tab-btn { flex: 1; padding: 14px 8px; border: none; background: none; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: var(--gray); cursor: pointer; position: relative; transition: color 0.2s; }
+  .tab-btn.active { color: var(--blue); }
+  .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 16px; right: 16px; height: 3px; background: var(--blue); border-radius: 3px 3px 0 0; }
+
+  .content { padding: 20px 16px; max-width: 480px; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .page-sub { font-size: 14px; color: var(--text-sub); margin-bottom: 20px; }
+
+  /* SCAN CARD */
+  .scan-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px 20px; text-align: center; cursor: pointer; border: 2px dashed var(--border); transition: border-color 0.2s, background 0.2s; margin-bottom: 20px; user-select: none; }
+  .scan-card:hover { border-color: var(--blue); background: var(--blue-light); }
+  .scan-card .scan-label { font-size: 15px; font-weight: 600; color: var(--blue); }
+  .scan-card .scan-hint { font-size: 12px; color: var(--gray); margin-top: 4px; }
+
+  /* FIELDS */
+  .field-label { font-size: 13px; font-weight: 600; color: var(--text-sub); margin-bottom: 6px; letter-spacing: 0.4px; text-transform: uppercase; }
+  .field-row { display: flex; align-items: center; background: var(--gray-light); border-radius: 8px; border: 1.5px solid var(--border); padding: 0 12px; height: 44px; margin-bottom: 16px; transition: border-color 0.2s; }
+  .field-row:focus-within { border-color: var(--blue); }
+  .field-row input { flex: 1; border: none; background: transparent; font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: var(--text); outline: none; height: 100%; }
+  .field-row input::placeholder { color: var(--gray); font-family: 'DM Sans', sans-serif; font-size: 14px; }
+  .field-row .qr-icon-btn { background: none; border: none; cursor: pointer; color: var(--blue); display: flex; align-items: center; padding: 4px; border-radius: 6px; }
+  .field-row .qr-icon-btn:hover { background: var(--blue-light); }
+
+  /* RESULT CARD */
+  .result-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 20px; margin-bottom: 16px; border-left: 4px solid var(--blue); display: none; animation: fadeSlide 0.3s ease; }
+  .result-card.visible { display: block; }
+  .result-title { font-size: 13px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .result-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--gray-light); font-size: 14px; }
+  .result-row:last-child { border-bottom: none; }
+  .result-row .rk { color: var(--text-sub); }
+  .result-row .rv { font-weight: 600; font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .badge.ok { background: #e6f9ef; color: var(--green); }
+  .badge.error { background: #fde8e8; color: var(--red); }
+  .badge.warn { background: #fff3e0; color: #e65100; }
+
+  .error-msg { background: #fde8e8; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: var(--red); font-weight: 600; display: none; margin-bottom: 12px; animation: fadeSlide 0.2s ease; }
+  .error-msg.visible { display: flex; align-items: center; gap: 8px; }
+  .info-msg { background: var(--blue-light); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: var(--blue); font-weight: 600; display: none; margin-bottom: 12px; }
+  .info-msg.visible { display: flex; align-items: center; gap: 8px; }
+
+  /* BUTTONS */
+  .btn-primary { width: 100%; height: 50px; background: var(--blue); color: white; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.1s; box-shadow: 0 4px 14px rgba(0,87,255,0.3); margin-top: 4px; }
+  .btn-primary:hover { background: var(--blue-dark); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: var(--gray); box-shadow: none; cursor: not-allowed; opacity: 0.7; }
+  .btn-secondary { width: 100%; height: 46px; background: white; color: var(--blue); border: 2px solid var(--blue); border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+  .btn-secondary:hover { background: var(--blue-light); }
+  .btn-danger { width: 100%; height: 46px; background: white; color: var(--red); border: 2px solid var(--red); border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+  .btn-danger:hover { background: #fde8e8; }
+
+  /* CARD */
+  .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px; }
+  .card-header { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  /* DEVICE LIST */
+  .device-list { list-style: none; }
+  .device-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--gray-light); gap: 12px; animation: fadeSlide 0.25s ease both; }
+  .device-item:last-child { border-bottom: none; }
+  .device-num { width: 32px; height: 32px; border-radius: 8px; background: var(--blue-light); color: var(--blue); font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .device-info { flex: 1; min-width: 0; }
+  .device-serial { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .device-meta { font-size: 12px; color: var(--gray); margin-top: 2px; }
+  .device-del { background: none; border: none; color: var(--gray); cursor: pointer; font-size: 18px; flex-shrink: 0; padding: 4px; border-radius: 4px; }
+  .device-del:hover { color: var(--red); background: #fde8e8; }
+
+  /* SPINNER */
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
+  .spinner.blue { border-color: rgba(0,87,255,0.2); border-top-color: var(--blue); }
+
+  /* SCANNER OVERLAY */
+  .scanner-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200; flex-direction: column; align-items: center; justify-content: center; }
+  .scanner-overlay.open { display: flex; }
+  .scanner-box { width: 260px; height: 260px; position: relative; margin-bottom: 30px; }
+  .scanner-inner { width: 100%; height: 100%; background: rgba(255,255,255,0.04); border-radius: 4px; overflow: hidden; position: relative; }
+  .corner { position: absolute; width: 40px; height: 40px; border-color: var(--blue); border-style: solid; }
+  .corner.tl { top: 0; left: 0; border-width: 4px 0 0 4px; border-radius: 4px 0 0 4px; }
+  .corner.tr { top: 0; right: 0; border-width: 4px 4px 0 0; border-radius: 0 4px 0 0; }
+  .corner.bl { bottom: 0; left: 0; border-width: 0 0 4px 4px; border-radius: 0 0 0 4px; }
+  .corner.br { bottom: 0; right: 0; border-width: 0 4px 4px 0; border-radius: 0 0 4px 0; }
+  .scan-line { position: absolute; left: 6px; right: 6px; height: 2px; background: linear-gradient(90deg, transparent, var(--blue), transparent); animation: scanMove 1.8s ease-in-out infinite; top: 10%; }
+  .scanner-txt { color: white; font-size: 14px; text-align: center; opacity: 0.7; margin-bottom: 24px; max-width: 240px; }
+  .scanner-simulate { background: rgba(255,255,255,0.15); border: none; color: white; padding: 10px 32px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .scanner-simulate:hover { background: rgba(255,255,255,0.25); }
+  .scanner-close-btn { background: transparent; border: none; color: white; opacity: 0.5; padding: 8px 20px; font-family: 'DM Sans', sans-serif; font-size: 15px; cursor: pointer; margin-top: 8px; }
+
+  /* TOKEN BADGE */
+  .token-info { background: var(--blue-light); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--text-sub); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .token-user { font-weight: 700; color: var(--blue); }
+  .logout-btn { margin-left: auto; background: none; border: none; color: var(--red); font-size: 12px; font-weight: 600; cursor: pointer; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes scanMove { 0% { top: 10%; } 50% { top: 88%; } 100% { top: 10%; } }
+  @keyframes fadeSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-noc py-3 shadow">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
-                <span class="status-dot me-2" id="dot-estado"></span>
-                <span>NOC - LIVE SINCRO</span>
-            </a>
-            <div class="d-flex align-items-center text-white gap-3">
-                <span class="badge bg-dark p-2 text-warning border border-warning" id="estado-conexion">Iniciando...</span>
-                <span class="badge bg-success p-2" id="reloj">00:00:00</span>
-            </div>
-        </div>
-    </nav>
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="56" height="56" rx="12" fill="#0057FF"/>
+        <path d="M14 20h8v8h-8zm14 0h8v8h-8zm0 14h8v8h-8zM16 22h4v4h-4zm14 0h4v4h-4zm0 14h4v4h-4z" fill="white"/>
+        <path d="M14 34h8v8h-8zM16 36h4v4h-4z" fill="white"/>
+      </svg>
+    </div>
+    <div class="login-title">DSFC App</div>
+    <div class="login-sub">Ingresa tus credenciales para continuar</div>
+    <div class="field-label">Usuario</div>
+    <div class="field-row"><input type="text" id="loginUser" placeholder="Número de empleado" autocomplete="username" /></div>
+    <div class="field-label">Contraseña</div>
+    <div class="field-row"><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" /></div>
+    <div class="error-msg" id="loginError">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      <span id="loginErrorMsg">Credenciales incorrectas</span>
+    </div>
+    <button class="btn-primary" id="loginBtn" onclick="doLogin()">Iniciar sesión</button>
+  </div>
+</div>
 
-    <div class="container-fluid px-4 mt-4">
-        
-        <div class="row g-3 mb-4">
-            <div class="col-6 col-lg-3" onclick="filtrarPorTipo('TODOS')">
-                <div class="card card-indicador bg-total p-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Alertas Totales</h6>
-                            <h2 class="fw-bold m-0 mt-1" id="num-total">0</h2>
-                        </div>
-                        <i class="fa-solid fa-network-wired fa-2x text-white-50"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-lg-3" onclick="filtrarPorTipo('CFO')">
-                <div class="card card-indicador bg-cfo p-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Cortes (CFO)</h6>
-                            <h2 class="fw-bold m-0 mt-1" id="num-cfo">0</h2>
-                        </div>
-                        <i class="fa-solid fa-scissors fa-2x text-white-50"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-lg-3" onclick="filtrarPorTipo('AFO')">
-                <div class="card card-indicador bg-afo p-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Atenuación (AFO)</h6>
-                            <h2 class="fw-bold m-0 mt-1" id="num-afo">0</h2>
-                        </div>
-                        <i class="fa-solid fa-chart-line-down fa-2x text-white-50"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-lg-3" onclick="filtrarPorTipo('POW')">
-                <div class="card card-indicador bg-pow p-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Falla Energía (POW)</h6>
-                            <h2 class="fw-bold m-0 mt-1" id="num-pow">0</h2>
-                        </div>
-                        <i class="fa-solid fa-bolt-lightning fa-2x text-white-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- APP SCREEN -->
+<div id="appScreen" style="display:none">
+  <div class="toolbar">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M3 8h5V3H3v5zm2-3h1v1H5V5zM3 21h5v-5H3v5zm2-3h1v1H5v-1zM16 3v5h5V3h-5zm3 3h-1V5h1v1zM3 13h2v2H3zm2 4h2v2H5zm2-4h2v-2H7v2zm2-2h2v-2H9v2zm4 4h2v2h-2zm2-2h2v-2h-2v2zm-2 0h-2v2h2v-2zm4 4h-2v2h2v-2zm0-4h-2v2h2v-2zm2-2h-2v2h2v-2z"/></svg>
+    <h1>DSFC – Gestión de QR</h1>
+  </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-12">
-                <div class="bg-white p-3 rounded-3 shadow-sm d-flex gap-2">
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                        <input type="text" id="buscador" class="form-control border-start-0 bg-light" placeholder="Filtrar por OLT, Región, Distrito Técnico..." onkeyup="ejecutarFiltroGeneral()">
-                    </div>
-                    <button class="btn btn-outline-dark" onclick="solicitarDatosReales()"><i class="fa-solid fa-arrows-rotate"></i></button>
-                </div>
-            </div>
-        </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('qr', this)">📡 Búsqueda QR</button>
+    <button class="tab-btn" onclick="switchTab('etiqueta', this)">🏷️ Etiquetado</button>
+  </div>
 
-        <div class="row">
-            <div class="col-12">
-                <div class="tabla-contenedor p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="m-0 fw-bold text-secondary">
-                            <i class="fa-solid fa-list-check me-2"></i>Monitoreo Operativo en Tiempo Real
-                        </h5>
-                        <span class="badge bg-secondary" id="tag-filtro">Vista: Todos</span>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle m-0" id="tablaMaster">
-                            <thead class="table-light border-bottom">
-                                <tr>
-                                    <th>Elemento de Red / OLT</th>
-                                    <th>Tipo de Evento</th>
-                                    <th>Ubicación Geográfica</th>
-                                    <th>Clientes Afectados</th>
-                                    <th>Fecha de Inicio</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">Estableciendo enlace con el proxy de Cloudflare...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="content">
+
+    <!-- ===== PANEL QR ===== -->
+    <div class="panel active" id="panel-qr">
+      <div class="token-info">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#0057FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+        Sesión: <span class="token-user" id="sessionUser">—</span>
+        <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+      </div>
+
+      <p class="page-title">Búsqueda por QR</p>
+      <p class="page-sub">Escanea o ingresa el código QR del splitter</p>
+
+      <div class="scan-card" onclick="openScanner('qr')">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" style="display:block;margin:0 auto 12px"><rect x="3" y="3" width="7" height="7" rx="1" stroke="#0057FF" stroke-width="1.8"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="#0057FF" stroke-width="1.8"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="#0057FF" stroke-width="1.8"/><rect x="5" y="5" width="3" height="3" fill="#0057FF" rx="0.4"/><rect x="16" y="5" width="3" height="3" fill="#0057FF" rx="0.4"/><rect x="5" y="16" width="3" height="3" fill="#0057FF" rx="0.4"/><path d="M14 14h2v2h-2zm4 0h2v2h-2zm-4 4h2v2h-2zm4 0h2v2h-2zm-2-2h2v2h-2z" fill="#0057FF"/></svg>
+        <div class="scan-label">Escanear código QR</div>
+        <div class="scan-hint">Toca para abrir la cámara</div>
+      </div>
+
+      <div class="field-label">O ingresa manualmente</div>
+      <div class="field-row">
+        <input type="text" id="qrInput" placeholder="Ej. TP-SPL-001-2024" maxlength="40" oninput="onQrInput(this.value)" />
+        <button class="qr-icon-btn" onclick="openScanner('qr')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+        </button>
+      </div>
+
+      <div class="error-msg" id="qrError">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        <span id="qrErrorMsg">QR no válido</span>
+      </div>
+      <div class="info-msg" id="qrLoading">
+        <span class="spinner blue"></span> Consultando API…
+      </div>
+
+      <div class="result-card" id="qrResult">
+        <div class="result-title">✓ Splitter encontrado</div>
+        <div class="result-row"><span class="rk">Código QR</span><span class="rv" id="resQr">—</span></div>
+        <div class="result-row"><span class="rk">Tipo</span><span class="rv" id="resTipo">—</span></div>
+        <div class="result-row"><span class="rk">Puerto</span><span class="rv" id="resPuerto">—</span></div>
+        <div class="result-row"><span class="rk">Estado</span><span id="resEstado">—</span></div>
+        <div class="result-row"><span class="rk">Nodo</span><span class="rv" id="resNodo">—</span></div>
+      </div>
+
+      <button class="btn-primary" id="btnBuscar" onclick="buscarQR()" disabled>Buscar</button>
+      <button class="btn-secondary" id="btnNuevoEscaneo" style="display:none" onclick="resetQR()">Nuevo escaneo</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ===== PANEL ETIQUETADO ===== -->
+    <div class="panel" id="panel-etiqueta">
+      <div class="token-info">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#0057FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+        Sesión: <span class="token-user" id="sessionUser2">—</span>
+        <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+      </div>
 
-    <script>
-        const WORKER_URL = "https://noc-api-bridge.playtotalito.workers.dev";
-        let datasetAlarmas = [];
-        let filtroTipoActual = "TODOS";
+      <p class="page-title">Etiquetado</p>
+      <p class="page-sub">Registra los equipos pre-escaneados para la orden</p>
 
-        window.onload = function() {
-            solicitarDatosReales();
-            
-            // Reloj cabecera
-            setInterval(function() {
-                const reloj = document.getElementById('reloj');
-                if(reloj) reloj.innerText = new Date().toLocaleTimeString();
-            }, 1000);
+      <div class="scan-card" onclick="openScanner('etiqueta')">
+        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#0057FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 12px"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <div class="scan-label">Escanear equipo</div>
+        <div class="scan-hint">QR o código de barras del dispositivo</div>
+      </div>
 
-            // Refresco cada 3 minutos
-            setInterval(solicitarDatosReales, 180000);
-        };
+      <div class="card" id="equipoActivo" style="display:none">
+        <div class="card-header">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0057FF" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Nuevo Equipo
+        </div>
+        <div class="field-label">Número de serie *</div>
+        <div class="field-row">
+          <input type="text" id="serieInput" placeholder="Serial del equipo" />
+          <button class="qr-icon-btn" onclick="openScanner('etiqueta')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+          </button>
+        </div>
+        <div class="field-label">Tipo de equipo</div>
+        <div class="field-row">
+          <input type="text" id="tipoEquipo" placeholder="ONT / Splitter / Router…" />
+        </div>
+        <div class="field-label">Número de OT</div>
+        <div class="field-row">
+          <input type="text" id="otInput" placeholder="Orden de trabajo" />
+        </div>
+        <div class="error-msg" id="etqError" style="margin-bottom:8px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <span id="etqErrorMsg">Error al registrar</span>
+        </div>
+        <div class="info-msg" id="etqLoading">
+          <span class="spinner blue"></span> Registrando en servidor…
+        </div>
+        <button class="btn-primary" id="btnAgregarEquipo" onclick="agregarEtiqueta()">Registrar equipo</button>
+        <button class="btn-secondary" onclick="cancelarEquipo()">Cancelar</button>
+      </div>
 
-        async function solicitarDatosReales() {
-            const indicador = document.getElementById('estado-conexion');
-            const dot = document.getElementById('dot-estado');
-            if (indicador) {
-                indicador.className = "badge bg-warning text-dark";
-                indicador.innerText = "Sincronizando...";
-            }
+      <div class="card">
+        <div class="card-header">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0057FF" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          Equipos registrados
+          <span id="equipoCount" style="margin-left:auto;font-size:12px;font-weight:700;background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:20px">0</span>
+        </div>
+        <ul class="device-list" id="deviceList">
+          <li style="color:var(--gray);font-size:13px;text-align:center;padding:16px 0">Sin equipos registrados aún</li>
+        </ul>
+      </div>
 
-            try {
-                let respuesta = await fetch(WORKER_URL);
-                if (!respuesta.ok) throw new Error("HTTP Status Error: " + respuesta.status);
-                
-                let JSON_NOC = await respuesta.json();
-                
-                if (Array.isArray(JSON_NOC)) {
-                    datasetAlarmas = JSON_NOC.map(function(item, index) {
-                        return {
-                            id: item.idAlarma || item.id || index,
-                            olt: item.olt || item.oltName || item.elemento || item.nombreElemento || "EQUIPO_NOC",
-                            tipo: (item.tipo || item.tipoAlarma || item.categoria || "CFO").toUpperCase().trim(),
-                            region: item.ubicacion || item.region || item.distrito || item.entidad || "MÉXICO",
-                            clientes: parseInt(item.clientesCount || item.userCount || item.afectados || item.totalAfectados || 0, 10),
-                            fecha: item.inicio || item.fechaInicio || item.fecha || "--:--"
-                        };
-                    });
-                } else {
-                    datasetAlarmas = [];
-                }
+      <div class="info-msg" id="saveLoading"><span class="spinner blue"></span> Guardando en servidor…</div>
+      <div class="error-msg" id="saveError"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><span id="saveErrorMsg">Error al guardar</span></div>
+      <button class="btn-primary" id="btnGuardar" disabled onclick="guardarEtiquetado()">Guardar etiquetado</button>
+      <button class="btn-danger" id="btnLimpiar" style="display:none" onclick="limpiarLista()">Limpiar lista</button>
+    </div>
 
-                if (indicador && dot) {
-                    indicador.className = "badge bg-success";
-                    indicador.innerText = "ONLINE";
-                    dot.style.backgroundColor = "#10b981";
-                }
+  </div>
+</div>
 
-                renderizarContadores();
-                ejecutarFiltroGeneral();
+<!-- SCANNER OVERLAY -->
+<div class="scanner-overlay" id="scannerOverlay">
+  <div class="scanner-box">
+    <div class="scanner-inner">
+      <div class="scan-line"></div>
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+    </div>
+  </div>
+  <p class="scanner-txt">Apunta la cámara al código QR o barras</p>
+  <button class="scanner-simulate" onclick="simulateScan()">Simular escaneo (demo)</button>
+  <button class="scanner-close-btn" onclick="closeScanner()">Cerrar</button>
+</div>
 
-            } catch (error) {
-                console.error("Fallo de mapeo:", error);
-                if (indicador && dot) {
-                    indicador.className = "badge bg-danger";
-                    indicador.innerText = "DESCONECTADO";
-                    dot.style.backgroundColor = "#dc2626";
-                }
-                
-                const tbody = document.querySelector("#tablaMaster tbody");
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4"><i class="fa-solid fa-triangle-exclamation me-2"></i>La memoria del Worker se encuentra vacía o la sesión ha expirado en el backend.</td></tr>';
-                }
-            }
-        }
+<script>
+// ──────────────────────────────────────────────
+//  CONFIGURACIÓN API
+// ──────────────────────────────────────────────
+const BASE_URL = 'https://dsfc-prod.dralmey.com.uy';
+let authToken = null;
+let currentUser = null;
 
-        function renderizarContadores() {
-            let total = datasetAlarmas.length;
-            let cfos = datasetAlarmas.filter(function(x) { return x.tipo === "CFO" || x.tipo === "CORTE"; }).length;
-            let afos = datasetAlarmas.filter(function(x) { return x.tipo === "AFO" || x.tipo === "ATENUACION"; }).length;
-            let pows = datasetAlarmas.filter(function(x) { return x.tipo === "POW" || x.tipo === "ENERGIA"; }).length;
+// ──────────────────────────────────────────────
+//  HELPERS HTTP
+// ──────────────────────────────────────────────
+async function apiPost(path, body, useAuth = false) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (useAuth && authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  const res = await fetch(BASE_URL + path, { method: 'POST', headers, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, data };
+}
 
-            if(document.getElementById('num-total')) document.getElementById('num-total').innerText = total;
-            if(document.getElementById('num-cfo')) document.getElementById('num-cfo').innerText = cfos;
-            if(document.getElementById('num-afo')) document.getElementById('num-afo').innerText = afos;
-            if(document.getElementById('num-pow')) document.getElementById('num-pow').innerText = pows;
-        }
+async function apiGet(path) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  const res = await fetch(BASE_URL + path, { method: 'GET', headers });
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, data };
+}
 
-        function filtrarPorTipo(tipo) {
-            filtroTipoActual = tipo;
-            const tag = document.getElementById('tag-filtro');
-            if(tag) tag.innerText = "Vista: " + tipo;
-            ejecutarFiltroGeneral();
-        }
+async function apiPatch(path, body) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  const res = await fetch(BASE_URL + path, { method: 'PATCH', headers, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, data };
+}
 
-        function ejecutarFiltroGeneral() {
-            const buscador = document.getElementById('buscador');
-            let txt = buscador ? buscador.value.toLowerCase().trim() : "";
+// ──────────────────────────────────────────────
+//  AUTH
+// ──────────────────────────────────────────────
+async function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!user || !pass) { showLoginError('Ingresa usuario y contraseña'); return; }
 
-            let filtrados = datasetAlarmas.filter(function(item) {
-                let coincideTipo = (filtroTipoActual === "TODOS" || item.tipo === filtroTipoActual);
-                let coincideTexto = item.olt.toLowerCase().includes(txt) || 
-                                     item.region.toLowerCase().includes(txt) || 
-                                     item.tipo.toLowerCase().includes(txt);
-                return coincideTipo && coincideTexto;
-            });
+  const btn = document.getElementById('loginBtn');
+  btn.innerHTML = '<span class="spinner"></span> Autenticando…';
+  btn.disabled = true;
 
-            dibujarTabla(filtrados);
-        }
+  try {
+    const { ok, data } = await apiPost('/dsfc/login', {
+      username: user,
+      password: pass,
+      grant_type: 'password',
+      latitud: '0', longitud: '0',
+      mac: '', ip: '',
+      sistemaOperativo: 'WEB',
+      tipoAplicacion: 'WEB',
+      idDispositivo: 'browser',
+      dispositivoAndroid: 'false',
+      encrypt: false,
+      versionApp: '1.26'
+    });
 
-        function dibujarTabla(datos) {
-            const tbody = document.querySelector("#tablaMaster tbody");
-            if(!tbody) return;
-            tbody.innerHTML = "";
+    if (ok && data.access_token) {
+      authToken = data.access_token;
+      currentUser = user;
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appScreen').style.display = 'block';
+      document.getElementById('sessionUser').textContent = user;
+      document.getElementById('sessionUser2').textContent = user;
+      hideLoginError();
+    } else {
+      showLoginError(data.message || data.error_description || 'Credenciales incorrectas');
+    }
+  } catch (e) {
+    showLoginError('Sin conexión con el servidor: ' + e.message);
+  }
 
-            if (datos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No se registran alarmas bajo este criterio.</td></tr>';
-                return;
-            }
+  btn.innerHTML = 'Iniciar sesión';
+  btn.disabled = false;
+}
 
-            datos.forEach(function(row) {
-                let badgeClase = "bg-danger";
-                if (row.tipo === "AFO" || row.tipo === "ATENUACION") badgeClase = "bg-warning text-dark";
-                if (row.tipo === "POW" || row.tipo === "ENERGIA") badgeClase = "bg-primary";
+function doLogout() {
+  authToken = null;
+  currentUser = null;
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginPass').value = '';
+  resetQR();
+}
 
-                let tr = '<tr>' +
-                    '<td class="fw-bold text-dark">' + row.olt + '</td>' +
-                    '<td><span class="badge ' + badgeClase + '">' + row.tipo + '</span></td>' +
-                    '<td><i class="fa-solid fa-location-dot me-1 text-muted"></i>' + row.region + '</td>' +
-                    '<td class="fw-bold text-secondary"><i class="fa-solid fa-users me-1"></i>' + row.clientes + '</td>' +
-                    '<td class="small text-muted">' + row.fecha + '</td>' +
-                    '</tr>';
-                tbody.innerHTML += tr;
-            });
-        }
-    </script>
+function showLoginError(msg) {
+  document.getElementById('loginErrorMsg').textContent = msg;
+  document.getElementById('loginError').classList.add('visible');
+}
+function hideLoginError() {
+  document.getElementById('loginError').classList.remove('visible');
+}
+
+// ──────────────────────────────────────────────
+//  TABS
+// ──────────────────────────────────────────────
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+// ──────────────────────────────────────────────
+//  SCANNER OVERLAY
+// ──────────────────────────────────────────────
+let scanTarget = 'qr';
+function openScanner(target) { scanTarget = target; document.getElementById('scannerOverlay').classList.add('open'); }
+function closeScanner() { document.getElementById('scannerOverlay').classList.remove('open'); }
+
+const DEMO_SERIALS = ['TP-SPL-001-2024-ABC', 'TP-SPL-002-2024-XYZ', 'TP-ONT-GH2-2024-J88', 'TP-RTR-ZX4-2024-K12'];
+function simulateScan() {
+  closeScanner();
+  const code = DEMO_SERIALS[Math.floor(Math.random() * DEMO_SERIALS.length)];
+  if (scanTarget === 'qr') {
+    document.getElementById('qrInput').value = code;
+    onQrInput(code);
+  } else {
+    document.getElementById('equipoActivo').style.display = 'block';
+    document.getElementById('serieInput').value = code;
+  }
+}
+
+// ──────────────────────────────────────────────
+//  PANEL: BÚSQUEDA QR
+// ──────────────────────────────────────────────
+function onQrInput(val) {
+  document.getElementById('qrError').classList.remove('visible');
+  document.getElementById('qrResult').classList.remove('visible');
+  document.getElementById('btnNuevoEscaneo').style.display = 'none';
+  document.getElementById('btnBuscar').disabled = val.trim().length < 3;
+}
+
+async function buscarQR() {
+  const code = document.getElementById('qrInput').value.trim();
+  if (!code) return;
+  const btn = document.getElementById('btnBuscar');
+  btn.disabled = true;
+  document.getElementById('qrError').classList.remove('visible');
+  document.getElementById('qrResult').classList.remove('visible');
+  document.getElementById('qrLoading').classList.add('visible');
+
+  try {
+    // Endpoint: GET /dsfc/recoleccion/qr/generados/{idUser} busca QR por usuario
+    // Endpoint de validación: getSplitterByQr en SplitterQRValidationViewModel
+    // Probamos buscando el QR en la lista de generados del usuario actual
+    const { ok, data } = await apiGet(`/dsfc/recoleccion/qr/generados/${currentUser}`);
+
+    document.getElementById('qrLoading').classList.remove('visible');
+
+    if (ok) {
+      // Buscar el QR específico en la respuesta
+      const list = Array.isArray(data) ? data : (data.data || data.response || []);
+      const item = list.find(q =>
+        (q.qr && q.qr.toString().toUpperCase() === code.toUpperCase()) ||
+        (q.codigo && q.codigo.toString().toUpperCase() === code.toUpperCase()) ||
+        (q.codigoQr && q.codigoQr.toString().toUpperCase() === code.toUpperCase())
+      );
+
+      if (item) {
+        showQRResult(code, item);
+      } else {
+        // Si no está en la lista, intentar búsqueda directa
+        await buscarQRDirecto(code);
+      }
+    } else {
+      // Intentar búsqueda directa como fallback
+      await buscarQRDirecto(code);
+    }
+  } catch (e) {
+    document.getElementById('qrLoading').classList.remove('visible');
+    showQRError('Error de conexión: ' + e.message);
+  }
+
+  btn.disabled = false;
+}
+
+async function buscarQRDirecto(code) {
+  // Endpoint alternativo: splitter information by QR
+  // Del código: getSplitterByQr en SplitterQRValidationViewModel
+  try {
+    const { ok, data } = await apiGet(`/dsfc/splitter/qr/${encodeURIComponent(code)}`);
+    if (ok && (data.id || data.qr || data.codigo)) {
+      showQRResult(code, data);
+    } else {
+      showQRError('QR no encontrado en el sistema: ' + code);
+    }
+  } catch(e) {
+    showQRError('QR no encontrado o sin conexión');
+  }
+}
+
+function showQRResult(code, item) {
+  document.getElementById('resQr').textContent = code;
+  document.getElementById('resTipo').textContent = item.tipo || item.type || item.tipoSplitter || '—';
+  document.getElementById('resPuerto').textContent = item.puerto || item.port || item.numeroPuerto || '—';
+  document.getElementById('resNodo').textContent = item.nodo || item.node || item.nombreNodo || item.clave || '—';
+
+  const estado = item.estado || item.status || item.estatus || 'Disponible';
+  const statusEl = document.getElementById('resEstado');
+  if (/disponible|available|libre/i.test(estado)) {
+    statusEl.innerHTML = `<span class="badge ok">● ${estado}</span>`;
+  } else if (/uso|used|ocupado/i.test(estado)) {
+    statusEl.innerHTML = `<span class="badge error">● ${estado}</span>`;
+  } else {
+    statusEl.innerHTML = `<span class="badge warn">● ${estado}</span>`;
+  }
+
+  document.getElementById('qrResult').classList.add('visible');
+  document.getElementById('btnNuevoEscaneo').style.display = 'block';
+  document.getElementById('btnBuscar').disabled = true;
+}
+
+function showQRError(msg) {
+  document.getElementById('qrErrorMsg').textContent = msg;
+  document.getElementById('qrError').classList.add('visible');
+  document.getElementById('btnBuscar').disabled = false;
+}
+
+function resetQR() {
+  document.getElementById('qrInput').value = '';
+  document.getElementById('qrResult').classList.remove('visible');
+  document.getElementById('qrError').classList.remove('visible');
+  document.getElementById('qrLoading').classList.remove('visible');
+  document.getElementById('btnNuevoEscaneo').style.display = 'none';
+  document.getElementById('btnBuscar').disabled = true;
+}
+
+// ──────────────────────────────────────────────
+//  PANEL: ETIQUETADO
+// ──────────────────────────────────────────────
+let equipos = [];
+
+function cancelarEquipo() {
+  document.getElementById('equipoActivo').style.display = 'none';
+  document.getElementById('serieInput').value = '';
+  document.getElementById('tipoEquipo').value = '';
+  document.getElementById('otInput').value = '';
+  document.getElementById('etqError').classList.remove('visible');
+}
+
+async function agregarEtiqueta() {
+  const serie = document.getElementById('serieInput').value.trim();
+  const tipo = document.getElementById('tipoEquipo').value.trim();
+  const ot = document.getElementById('otInput').value.trim();
+  if (!serie) { showEtqError('El número de serie es obligatorio'); return; }
+
+  const btn = document.getElementById('btnAgregarEquipo');
+  btn.innerHTML = '<span class="spinner"></span> Registrando…';
+  btn.disabled = true;
+  document.getElementById('etqLoading').classList.add('visible');
+  document.getElementById('etqError').classList.remove('visible');
+
+  try {
+    // Endpoint: POST dsfc-materiales/registra-equipos-preescaneados
+    const { ok, data } = await apiPost('/dsfc-materiales/registra-equipos-preescaneados', {
+      numeroSerie: serie,
+      tipo: tipo || 'DESCONOCIDO',
+      idOrdenTrabajo: ot || null,
+      idUsuario: currentUser
+    }, true);
+
+    document.getElementById('etqLoading').classList.remove('visible');
+
+    if (ok) {
+      equipos.push({
+        serie,
+        tipo: tipo || 'Desconocido',
+        ot: ot || '—',
+        idx: equipos.length + 1,
+        serverData: data
+      });
+      renderDeviceList();
+      cancelarEquipo();
+      document.getElementById('btnGuardar').disabled = false;
+      document.getElementById('btnLimpiar').style.display = 'block';
+    } else {
+      showEtqError(data.message || data.error || 'Error al registrar equipo (cod: ' + (data.codigo || 'N/A') + ')');
+    }
+  } catch (e) {
+    document.getElementById('etqLoading').classList.remove('visible');
+    showEtqError('Sin conexión: ' + e.message);
+  }
+
+  btn.innerHTML = 'Registrar equipo';
+  btn.disabled = false;
+}
+
+function showEtqError(msg) {
+  document.getElementById('etqErrorMsg').textContent = msg;
+  document.getElementById('etqError').classList.add('visible');
+}
+
+async function guardarEtiquetado() {
+  if (equipos.length === 0) return;
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Guardando…';
+  document.getElementById('saveLoading').classList.add('visible');
+  document.getElementById('saveError').classList.remove('visible');
+
+  try {
+    // Endpoint: PATCH /dsfc/recoleccion/qr/inserta — inserta QR en colección
+    const payload = equipos.map(e => ({
+      numeroSerie: e.serie,
+      tipo: e.tipo,
+      idOrdenTrabajo: e.ot !== '—' ? e.ot : null,
+      idUsuario: currentUser
+    }));
+
+    const { ok, data } = await apiPatch('/dsfc/recoleccion/qr/inserta', {
+      equipos: payload,
+      idUsuario: currentUser
+    });
+
+    document.getElementById('saveLoading').classList.remove('visible');
+
+    if (ok) {
+      alert(`✓ ${equipos.length} equipo(s) guardados correctamente en el servidor.`);
+      equipos = [];
+      renderDeviceList();
+      btn.disabled = true;
+      document.getElementById('btnLimpiar').style.display = 'none';
+    } else {
+      document.getElementById('saveErrorMsg').textContent = data.message || 'Error al guardar (' + (data.codigo || 'N/A') + ')';
+      document.getElementById('saveError').classList.add('visible');
+      btn.disabled = false;
+    }
+  } catch (e) {
+    document.getElementById('saveLoading').classList.remove('visible');
+    document.getElementById('saveErrorMsg').textContent = 'Sin conexión: ' + e.message;
+    document.getElementById('saveError').classList.add('visible');
+    btn.disabled = false;
+  }
+
+  btn.innerHTML = 'Guardar etiquetado';
+}
+
+function limpiarLista() {
+  if (!confirm('¿Eliminar todos los equipos de la lista local?')) return;
+  equipos = [];
+  renderDeviceList();
+  document.getElementById('btnGuardar').disabled = true;
+  document.getElementById('btnLimpiar').style.display = 'none';
+  document.getElementById('saveError').classList.remove('visible');
+}
+
+function eliminarEquipo(idx) {
+  equipos = equipos.filter((_, i) => i !== idx);
+  equipos.forEach((e, i) => e.idx = i + 1);
+  renderDeviceList();
+  if (equipos.length === 0) {
+    document.getElementById('btnGuardar').disabled = true;
+    document.getElementById('btnLimpiar').style.display = 'none';
+  }
+}
+
+function renderDeviceList() {
+  const list = document.getElementById('deviceList');
+  document.getElementById('equipoCount').textContent = equipos.length;
+  if (equipos.length === 0) {
+    list.innerHTML = '<li style="color:var(--gray);font-size:13px;text-align:center;padding:16px 0">Sin equipos registrados aún</li>';
+    return;
+  }
+  list.innerHTML = equipos.map((e, i) => `
+    <li class="device-item" style="animation-delay:${i*0.05}s">
+      <div class="device-num">${e.idx}</div>
+      <div class="device-info">
+        <div class="device-serial">${e.serie}</div>
+        <div class="device-meta">${e.tipo} · OT: ${e.ot}</div>
+      </div>
+      <span class="badge ok">✓ OK</span>
+      <button class="device-del" onclick="eliminarEquipo(${i})" title="Eliminar">✕</button>
+    </li>
+  `).join('');
+}
+
+// Enter en campo QR
+document.getElementById('qrInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !document.getElementById('btnBuscar').disabled) buscarQR();
+});
+
+// Enter en login
+document.getElementById('loginPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
 </body>
 </html>
