@@ -3,318 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TPFFM - Sistema Unificado de Planta Externa</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Dashboard de Operaciones Internas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/dist/min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Estilo para ocultar secciones suavemente */
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar-custom {
+            background-color: #1e293b;
+        }
+        .card-counter {
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            transition: transform 0.2s;
+        }
+        .card-counter:hover {
+            transform: translateY(-3px);
+        }
+        .bg-cfo { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+        .bg-afo { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .bg-pow { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .bg-ok { background: linear-gradient(135deg, #10b981, #047857); }
+        
+        .table-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen font-sans flex flex-col justify-between">
+<body>
 
-    <header class="bg-blue-700 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-50">
-        <h1 class="text-lg font-bold tracking-wide">Planta Externa - Gestión Integral</h1>
-        <span class="text-xs bg-blue-900 px-2 py-1 rounded text-blue-200 font-mono">v2.0.26</span>
-    </header>
-
-    <nav class="bg-white border-b border-gray-200 shadow-sm sticky top-[56px] z-40 overflow-x-auto whitespace-nowrap">
-        <div class="flex max-w-xl mx-auto px-2">
-            <button onclick="switchTab('registro')" id="tab-registro" class="flex-1 text-center py-3 px-4 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition">
-                Alta QR
-            </button>
-            <button onclick="switchTab('documentacion')" id="tab-documentacion" class="flex-1 text-center py-3 px-4 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 transition">
-                Planta Externa
-            </button>
-            <button onclick="switchTab('crecimiento')" id="tab-crecimiento" class="flex-1 text-center py-3 px-4 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 transition">
-                Crecimiento
-            </button>
-            <button onclick="switchTab('ont')" id="tab-ont" class="flex-1 text-center py-3 px-4 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 transition">
-                Consulta ONT
-            </button>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom shadow-sm mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="fa-solid fa-network-wired me-2"></i>Portal de Gestión Interna</a>
+            <div class="d-flex align-items-center text-white">
+                <span class="me-3"><i class="fa-solid fa-user-gear me-1"></i> Operador Interno</span>
+                <button class="btn btn-sm btn-outline-light" onclick="actualizarDatos()"><i class="fa-solid fa-rotate me-1"></i>Refrescar</button>
+            </div>
         </div>
     </nav>
 
-    <main class="flex-1 p-4 max-w-lg mx-auto w-full mb-20">
+    <div class="container-fluid px-4">
         
-        <section id="content-registro" class="tab-content active bg-white p-5 rounded-lg shadow-md border border-gray-200 space-y-4">
-            <h2 class="text-xl font-bold text-gray-800 border-b pb-2">Registro Inicial de Splitter</h2>
-            <form id="form-registro" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Código QR / Barras</label>
-                    <div class="flex rounded-md shadow-sm">
-                        <input type="text" id="reg-qr" required class="flex-1 block w-full rounded-l-md border-gray-300 border p-2 text-sm uppercase font-mono bg-gray-50" placeholder="Escanee o ingrese QR">
-                        <button type="button" class="px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-blue-600 hover:bg-gray-100">📷</button>
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-counter bg-cfo p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase fw-bold text-white-50 m-0">Cortes / Fallas Críticas</h6>
+                            <h2 class="display-6 fw-bold m-0" id="count-cfo">12</h2>
+                        </div>
+                        <i class="fa-solid fa-cable-flash fa-2x text-white-50"></i>
                     </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Etiqueta (Label ID)</label>
-                    <input type="text" id="reg-label" required class="block w-full rounded-md border-gray-300 border p-2 text-sm bg-gray-50" placeholder="Ej. RE-JUA-01-SPL-02">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Modelo</label>
-                        <input type="text" id="reg-model" class="block w-full rounded-md border-gray-300 border p-2 text-sm bg-gray-50" placeholder="Huawei OptiX">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Puerto Asignado</label>
-                        <input type="number" id="reg-port" class="block w-full rounded-md border-gray-300 border p-2 text-sm bg-gray-50" placeholder="Ej. 1">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Estatus Inicial</label>
-                    <select id="reg-status" class="block w-full rounded-md border-gray-300 border p-2 bg-white text-sm">
-                        <option value="Disponible">Disponible</option>
-                        <option value="Activo">Activo</option>
-                        <option value="Dañado">Dañado</option>
-                    </select>
-                </div>
-            </form>
-        </section>
-
-        <section id="content-documentacion" class="tab-content bg-white p-5 rounded-lg shadow-md border border-gray-200 space-y-4">
-            <h2 class="text-xl font-bold text-gray-800 border-b pb-2">Detalles de Planta Externa</h2>
-            <form id="form-documentacion" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Descripción del Splitter</label>
-                    <input type="text" id="doc-desc" class="block w-full rounded-md border-gray-300 border p-2 text-sm bg-gray-50" placeholder="Descripción técnica del nodo">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Ubicación</label>
-                        <select id="doc-location" class="block w-full rounded-md border-gray-300 border p-2 bg-white text-sm">
-                            <option value="Poste">Poste</option>
-                            <option value="Pozo">Pozo</option>
-                            <option value="Distrito">Distrito</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Capacidad Puertos</label>
-                        <select id="doc-ports" class="block w-full rounded-md border-gray-300 border p-2 bg-white text-sm">
-                            <option value="8">1:8</option>
-                            <option value="16">1:16</option>
-                            <option value="32">1:32</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Marca de Caja</label>
-                        <select id="doc-brand" class="block w-full rounded-md border-gray-300 border p-2 bg-white text-sm">
-                            <option value="Huawei">Huawei</option>
-                            <option value="Tyco">Tyco</option>
-                            <option value="FiberHome">FiberHome</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tipo de Propiedad</label>
-                        <select id="doc-type" onchange="toggleBuildingFields(this.value)" class="block w-full rounded-md border-gray-300 border p-2 bg-white text-sm">
-                            <option value="Publico">Vía Pública</option>
-                            <option value="Condominio">Condominio</option>
-                            <option value="Edificio">Edificio / Vertical</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div id="building-fields" class="hidden bg-blue-50 p-3 rounded-md border border-blue-200 grid grid-cols-2 gap-2">
-                    <input type="text" id="doc-floor" placeholder="Piso" class="p-2 border rounded bg-white text-sm">
-                    <input type="text" id="doc-dept" placeholder="Depto" class="p-2 border rounded bg-white text-sm">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nombre de la Caja / Cartografía</label>
-                    <select id="doc-boxname" class="block w-full rounded-md border-gray-300 border p-2 bg-white text-sm">
-                        <option value="Caja_01">Caja 01</option>
-                        <option value="Caja_02">Caja 02</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Dirección (Búsqueda automatizada)</label>
-                    <input type="text" id="doc-address" class="block w-full rounded-md border-gray-300 border p-2 text-sm bg-gray-50" placeholder="Ingrese o busque la dirección exacta">
-                </div>
-            </form>
-        </section>
-
-        <section id="content-crecimiento" class="tab-content bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center space-y-4">
-            <h2 class="text-xl font-bold text-gray-800 border-b pb-2 text-left">Ampliación de Infraestructura</h2>
-            <div class="mx-auto my-2 w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-            </div>
-            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Migración de puertos en caliente</p>
-            <div class="text-left space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Capacidad Actual del Nodo</label>
-                    <div class="w-full bg-gray-100 border border-gray-300 rounded-md p-2 text-sm text-gray-700 font-medium">8 Puertos (1:8)</div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nueva Capacidad Solicitada</label>
-                    <select id="grow-ports" class="block w-full rounded-md border-gray-300 border p-2 bg-white text-sm font-semibold">
-                        <option value="16">16 Puertos (1:16)</option>
-                        <option value="32">32 Puertos (1:32)</option>
-                    </select>
                 </div>
             </div>
-        </section>
-
-        <section id="content-ont" class="tab-content bg-white p-5 rounded-lg shadow-md border border-gray-200 space-y-4">
-            <h2 class="text-xl font-bold text-gray-800 border-b pb-2">Consulta de Datos Lógicos (ONT)</h2>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Número de Serie ONT / MAC</label>
-                    <div class="relative rounded-md shadow-sm">
-                        <input type="text" id="ont-serial" oninput="checkOntInput(this.value)" class="block w-full rounded-md border-gray-300 border p-2 pr-10 text-sm uppercase bg-gray-50 font-mono tracking-wider" placeholder="Ingrese número de serie">
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-blue-600">📷</div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-counter bg-afo p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase fw-bold text-white-50 m-0">Atenuaciones / Degradación</h6>
+                            <h2 class="display-6 fw-bold m-0" id="count-afo">4</h2>
+                        </div>
+                        <i class="fa-solid fa-chart-line-down fa-2x text-white-50"></i>
                     </div>
                 </div>
-                <button type="button" id="btn-search-ont" disabled onclick="searchOntInNetwork()" class="w-full bg-blue-400 text-white font-bold py-2 px-4 rounded-lg shadow cursor-not-allowed transition text-sm">
-                    BUSCAR INFORMACIÓN EN OLT
-                </button>
             </div>
-
-            <div id="ont-results" class="hidden bg-gray-50 p-4 rounded-md border border-gray-300 space-y-2">
-                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Aprovisionamiento Encontrado</p>
-                <div class="grid grid-cols-2 gap-2 text-xs font-mono">
-                    <div class="bg-white p-2 rounded border"><span class="text-gray-400 block">OLT:</span><span id="res-olt" class="font-bold text-gray-800">-</span></div>
-                    <div class="bg-white p-2 rounded border"><span class="text-gray-400 block">FRAME:</span><span id="res-frame" class="font-bold text-gray-800">-</span></div>
-                    <div class="bg-white p-2 rounded border"><span class="text-gray-400 block">SLOT:</span><span id="res-slot" class="font-bold text-gray-800">-</span></div>
-                    <div class="bg-white p-2 rounded border"><span class="text-gray-400 block">PORT:</span><span id="res-port" class="font-bold text-gray-800">-</span></div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-counter bg-pow p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase fw-bold text-white-50 m-0">Eventos de Energía</h6>
+                            <h2 class="display-6 fw-bold m-0" id="count-pow">2</h2>
+                        </div>
+                        <i class="fa-solid fa-plug-circle-bolt fa-2x text-white-50"></i>
+                    </div>
                 </div>
             </div>
-        </section>
-
-    </main>
-
-    <footer class="p-4 bg-gray-50 border-t border-gray-200 fixed bottom-0 left-0 right-0 z-50">
-        <div class="max-w-lg mx-auto">
-            <button type="button" id="btn-global-submit" onclick="submitCurrentForm()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition tracking-wide text-sm uppercase">
-                Guardar Registro Actual
-            </button>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-counter bg-ok p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase fw-bold text-white-50 m-0">Elementos Estables</h6>
+                            <h2 class="display-6 fw-bold m-0" id="count-ok">145</h2>
+                        </div>
+                        <i class="fa-solid fa-circle-check fa-2x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
         </div>
-    </footer>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="bg-white p-3 rounded-3 shadow-sm d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                    <div class="d-flex gap-2">
+                        <input type="text" id="inputBuscar" class="form-control" style="max-width: 300px;" placeholder="Buscar por OLT, IP, Comentario...">
+                        <button class="btn btn-primary" onclick="filtrarTabla()"><i class="fa-solid fa-magnifying-glass me-1"></i>Buscar</button>
+                    </div>
+                    <div>
+                        <span class="badge bg-secondary p-2">Última actualización: <span id="hora-actualizacion">--:--:--</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="table-container">
+                    <h5 class="mb-3 text-secondary fw-bold"><i class="fa-solid fa-list-check me-2"></i>Detalle de Eventos Activos</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="tablaEventos">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID Elemento</th>
+                                    <th>Tipo de Alerta</th>
+                                    <th>Ubicación / Nodo</th>
+                                    <th>Impacto</th>
+                                    <th>Tiempo Activo</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="detalleModal" tabindex="-1" aria-labelledby="detalleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="detalleModalLabel"><i class="fa-solid fa-circle-info me-2"></i>Detalle del Elemento Afectado</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="modalContenido">
+                        </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/dist/min.js"></script>
 
     <script>
-        let currentTab = 'registro';
+        // Simulación de datos que vendrían de tus scripts o base de datos
+        const datosEjemplo = [
+            { id: "OLT_SANTO_DOMINGO_01", tipo: "CFO", nodo: "Juárez Centro", impacto: "24 Usuarios", tiempo: "45 min", claseBadge: "bg-danger" },
+            { id: "OLT_SATELITE_04", tipo: "AFO", nodo: "Satélite", impacto: "3 Usuarios", tiempo: "12 min", claseBadge: "bg-warning text-dark" },
+            { id: "NODO_SAMALAYUCA_P1", tipo: "POW", nodo: "Ejido Samalayuca", impacto: "Falla de Energía Gral", tiempo: "1 hr 05 min", claseBadge: "bg-primary" },
+            { id: "OLT_SAN_JERONIMO_02", tipo: "CFO", nodo: "San Jerónimo", impacto: "11 Usuarios", tiempo: "5 min", claseBadge: "bg-danger" }
+        ];
 
-        // 1. Manejo del Cambio de Pestañas (Tabs)
-        function switchTab(tabId) {
-            currentTab = tabId;
+        function cargarTabla(datos) {
+            const tbody = document.querySelector("#tablaEventos tbody");
+            tbody.innerHTML = "";
             
-            // Ocultar todos los contenidos y limpiar estados activos de los botones
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('nav button').forEach(btn => {
-                btn.classList.remove('border-blue-600', 'text-blue-600');
-                btn.classList.add('border-transparent', 'text-gray-500', 'font-medium');
+            datos.forEach(item => {
+                const fila = `
+                    <tr>
+                        <td class="fw-bold">${item.id}</td>
+                        <td><span class="badge ${item.claseBadge}">${item.tipo}</span></td>
+                        <td>${item.nodo}</td>
+                        <td><span class="text-muted"><i class="fa-solid fa-users me-1"></i>${item.impacto}</span></td>
+                        <td><i class="fa-regular fa-clock me-1"></i>${item.tiempo}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-dark" onclick="verDetalle('${item.id}')">
+                                <i class="fa-solid fa-eye"></i> Analizar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += fila;
             });
-
-            // Activar pestaña seleccionada
-            document.getElementById(`content-${tabId}`).classList.add('active');
-            const activeBtn = document.getElementById(`tab-${tabId}`);
-            activeBtn.classList.remove('border-transparent', 'text-gray-500', 'font-medium');
-            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-bold');
-
-            // Ajustar dinámicamente el texto del botón de envío inferior
-            const globalBtn = document.getElementById('btn-global-submit');
-            if(tabId === 'ont') {
-                globalBtn.innerText = "Limpiar Consulta";
-            } else if (tabId === 'crecimiento') {
-                globalBtn.innerText = "Confirmar Ampliación";
-            } else {
-                globalBtn.innerText = "Guardar Registro Actual";
-            }
+            
+            // Actualizar hora de refresco
+            const ahora = new Date();
+            document.getElementById("hora-actualizacion").innerText = ahora.toLocaleTimeString();
         }
 
-        // 2. Mostrar/Ocultar campos de edificio (Simulación ViewStub)
-        function toggleBuildingFields(value) {
-            const fields = document.getElementById('building-fields');
-            if(value === 'Edificio' || value === 'Condominio') {
-                fields.classList.remove('hidden');
-            } else {
-                fields.classList.add('hidden');
-            }
+        function verDetalle(idElemento) {
+            const elemento = datosEjemplo.find(e => e.id === idElemento);
+            const contenedor = document.getElementById("modalContenido");
+            
+            contenedor.innerHTML = `
+                <div class="alert alert-secondary"><strong>Monitoreando:</strong> ${elemento.id}</div>
+                <table class="table table-bordered small">
+                    <tr><th>Ubicación exacta:</th><td>${elemento.nodo}</td></tr>
+                    <tr><th>Tipo de Incidencia:</th><td>${elemento.tipo}</td></tr>
+                    <tr><th>Magnitud del Impacto:</th><td>${elemento.impacto}</td></tr>
+                    <tr><th>Diagnóstico sugerido:</th><td>Revisar potencia óptica en planta externa o estado del interruptor de energía general.</td></tr>
+                </table>
+            `;
+            
+            // Mostrar modal de Bootstrap 5
+            const miModal = new bootstrap.Modal(document.getElementById('detalleModal'));
+            miModal.show();
         }
 
-        // 3. Validación y consulta de ONT
-        function checkOntInput(val) {
-            const btn = document.getElementById('btn-search-ont');
-            if(val.trim().length >= 6) {
-                btn.disabled = false;
-                btn.classList.remove('bg-blue-400', 'cursor-not-allowed');
-                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-            } else {
-                btn.disabled = true;
-                btn.classList.add('bg-blue-400', 'cursor-not-allowed');
-                btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-            }
+        function filtrarTabla() {
+            const busqueda = document.getElementById("inputBuscar").value.toLowerCase();
+            const filtrados = datosEjemplo.filter(item => 
+                item.id.toLowerCase().includes(busqueda) || 
+                item.nodo.toLowerCase().includes(busqueda) || 
+                item.tipo.toLowerCase().includes(busqueda)
+            );
+            cargarTabla(filtrados);
         }
 
-        function searchOntInNetwork() {
-            // Simulación de búsqueda exitosa en OLT remota
-            document.getElementById('res-olt').innerText = "OLT-JUAREZ-CENTRO-01";
-            document.getElementById('res-frame').innerText = "Rack_B";
-            document.getElementById('res-slot').innerText = "Slot_06";
-            document.getElementById('res-port').innerText = "GPON_04";
-            document.getElementById('ont-results').classList.remove('hidden');
+        function actualizarDatos() {
+            // Aquí puedes conectar en el futuro una petición fetch/AJAX real
+            cargarTabla(datosEjemplo);
         }
 
-        // 4. Procesamiento centralizado de datos (Envío unificado al Worker)
-        async function submitCurrentForm() {
-            let payload = { tab: currentTab, timestamp: new Date().toISOString() };
-            let endpoint = '';
-
-            if (currentTab === 'registro') {
-                payload.qr_code = document.getElementById('reg-qr').value.trim().toUpperCase();
-                payload.label = document.getElementById('reg-label').value.trim();
-                payload.model = document.getElementById('reg-model').value.trim();
-                payload.port = document.getElementById('reg-port').value;
-                payload.status = document.getElementById('reg-status').value;
-                endpoint = '/api/splitter/register';
-
-                if(!payload.qr_code || !payload.label) return alert("⚠️ QR y Etiqueta son obligatorios.");
-
-            } else if (currentTab === 'documentacion') {
-                payload.description = document.getElementById('doc-desc').value.trim();
-                payload.location = document.getElementById('doc-location').value;
-                payload.ports = document.getElementById('doc-ports').value;
-                payload.box_brand = document.getElementById('doc-brand').value;
-                payload.property_type = document.getElementById('doc-type').value;
-                payload.box_name = document.getElementById('doc-boxname').value;
-                payload.address = document.getElementById('doc-address').value.trim();
-                endpoint = '/api/splitter/documentation';
-
-                if(payload.property_type !== 'Publico') {
-                    payload.building = {
-                        floor: document.getElementById('doc-floor').value.trim(),
-                        dept: document.getElementById('doc-dept').value.trim()
-                    };
-                }
-                if(!payload.description || !payload.address) return alert("⚠️ Complete la Descripción y la Dirección.");
-
-            } else if (currentTab === 'crecimiento') {
-                payload.target_ports = document.getElementById('grow-ports').value;
-                endpoint = '/api/splitter/growth';
-                
-            } else if (currentTab === 'ont') {
-                // El botón global en la pestaña ONT actúa como reset de la consulta
-                document.getElementById('ont-serial').value = '';
-                document.getElementById('ont-results').classList.add('hidden');
-                checkOntInput('');
-                return;
-            }
-
-            // Bloque de Fetch hacia tu Cloudflare Worker
-            try {
-                console.log(`Enviando a ${endpoint}:`, payload);
-                // Ejemplo real:
-                // const response = await fetch(`https://tu-worker.workers.dev${endpoint}`, { method: 'POST', body: JSON.stringify(payload) });
-                
-                alert(`✅ Datos de [${currentTab.toUpperCase()}] procesados correctamente.`);
-                if(document.getElementById(`form-${currentTab}`)) {
-                    document.getElementById(`form-${currentTab}`).reset();
-                }
-            } catch (err) {
-                alert("❌ Error de comunicación con el servidor.");
-            }
-        }
+        // Carga inicial al abrir la página
+        window.onload = function() {
+            cargarTabla(datosEjemplo);
+        };
     </script>
 </body>
 </html>
