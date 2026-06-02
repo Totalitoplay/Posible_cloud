@@ -441,8 +441,34 @@ async function doLogin() {
       body: params.toString()
     });
     
-    // CORRECCIÓN: "const" en lugar de "st"
-    const data = await res.json();
+    const rawText = await res.text();
+    let data = {};
+
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch (parseError) {
+      console.error("El servidor no devolvió JSON. Respuesta cruda:", rawText);
+      data = { message: `Error ${res.status}: El servidor devolvió una respuesta vacía o no válida.` };
+    }
+    
+    // Validamos el éxito de la petición
+    if (res.ok && data.access_token) {
+      authToken = data.access_token;
+      currentUser = user;
+      
+      // Guardar en localStorage para no pedir login otra vez
+      localStorage.setItem('dsfc_token', authToken);
+      localStorage.setItem('dsfc_user', currentUser);
+      
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appScreen').style.display = 'block';
+      document.getElementById('sessionUser').textContent = user;
+      document.getElementById('sessionUser2').textContent = user;
+      hideLoginError();
+    } else {
+      // Mostrar el error real o uno genérico si el servidor no dio detalles
+      showLoginError(data.message || data.error_description || `Credenciales incorrectas (Código ${res.status})`);
+    }
     
     // CORRECCIÓN: Usar "res.ok" en lugar de "ok"
     if (res.ok && data.access_token) {
