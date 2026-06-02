@@ -406,105 +406,50 @@ const apiPatch = (path, body)                   => apiFetch('PATCH', path, body,
 // ──────────────────────────────────────────────
 //  AUTH
 // ──────────────────────────────────────────────
-async function doLogin() {
+function doLogin() {
   const user = document.getElementById('loginUser').value.trim();
-  const pass = document.getElementById('loginPass').value;
-  if (!user || !pass) { showLoginError('Ingresa usuario y contraseña'); return; }
+  if (!user) { showLoginError('Ingresa tu número de empleado o nombre'); return; }
 
   const btn = document.getElementById('loginBtn');
-  btn.innerHTML = '<span class="spinner"></span> Autenticando…';
-  btn.disabled = true;
-
-  try {
-    // 1. Convertimos los datos a formato URL-Encoded
-    const params = new URLSearchParams();
-    params.append('username', user);
-    params.append('password', pass);
-    params.append('grant_type', 'password');
-    params.append('latitud', '0');
-    params.append('longitud', '0');
-    params.append('mac', '');
-    params.append('ip', '');
-    params.append('sistemaOperativo', 'WEB');
-    params.append('tipoAplicacion', 'WEB');
-    params.append('idDispositivo', 'browser');
-    params.append('dispositivoAndroid', 'false');
-    params.append('encrypt', 'true');
-    params.append('versionApp', '1.26');
-
-    // 2. Hacemos el fetch directamente para forzar el Content-Type correcto
-    const res = await fetch(BASE_URL() + '/dsfc/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: params.toString()
-    });
+  btn.innerHTML = '<span class="spinner"></span> Ingresando…';
+  
+  setTimeout(() => {
+    currentUser = user;
+    // Guardamos la sesión local para no volver a pedirla
+    localStorage.setItem('dsfc_user', currentUser);
     
-    const rawText = await res.text();
-    let data = {};
-
-    try {
-      data = rawText ? JSON.parse(rawText) : {};
-    } catch (parseError) {
-      console.error("El servidor no devolvió JSON. Respuesta cruda:", rawText);
-      data = { message: `Error ${res.status}: El servidor devolvió una respuesta vacía o no válida.` };
-    }
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    document.getElementById('sessionUser').textContent = user;
+    document.getElementById('sessionUser2').textContent = user;
+    hideLoginError();
     
-    // Validamos el éxito de la petición
-    if (res.ok && data.access_token) {
-      authToken = data.access_token;
-      currentUser = user;
-      
-      // Guardar en localStorage para no pedir login otra vez
-      localStorage.setItem('dsfc_token', authToken);
-      localStorage.setItem('dsfc_user', currentUser);
-      
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('appScreen').style.display = 'block';
-      document.getElementById('sessionUser').textContent = user;
-      document.getElementById('sessionUser2').textContent = user;
-      hideLoginError();
-    } else {
-      // Mostrar el error real o uno genérico si el servidor no dio detalles
-      showLoginError(data.message || data.error_description || `Credenciales incorrectas (Código ${res.status})`);
-    }
-    
-    // CORRECCIÓN: Usar "res.ok" en lugar de "ok"
-    if (res.ok && data.access_token) {
-      authToken = data.access_token;
-      currentUser = user;
-      
-      // Guardar en localStorage para no pedir login otra vez
-      localStorage.setItem('dsfc_token', authToken);
-      localStorage.setItem('dsfc_user', currentUser);
-      
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('appScreen').style.display = 'block';
-      document.getElementById('sessionUser').textContent = user;
-      document.getElementById('sessionUser2').textContent = user;
-      hideLoginError();
-    } else {
-      showLoginError(data.message || data.error_description || 'Credenciales incorrectas');
-    }
-  } catch (e) {
-    showLoginError('Sin conexión con el servidor: ' + e.message);
-  }
-
-  btn.innerHTML = 'Iniciar sesión';
-  btn.disabled = false;
+    // Cargamos los equipos que ya tenías guardados de sesiones anteriores
+    cargarEquiposLocales();
+  }, 500); // Pequeño delay para mantener el efecto visual
 }
 
 function doLogout() {
-  authToken = null;
   currentUser = null;
-  localStorage.removeItem('dsfc_token');
   localStorage.removeItem('dsfc_user');
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
   resetQR();
 }
+
+// Autologin si recargas la página
+window.addEventListener('DOMContentLoaded', () => {
+  const savedUser = localStorage.getItem('dsfc_user');
+  if(savedUser) {
+    document.getElementById('loginUser').value = savedUser;
+    document.getElementById('loginPass').value = 'offline'; // pass fake
+    doLogin();
+  }
+});
+
+
 
 function showLoginError(msg) {
   document.getElementById('loginErrorMsg').textContent = msg;
