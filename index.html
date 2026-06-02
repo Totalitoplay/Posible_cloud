@@ -1,439 +1,129 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RegisterSplitterDocumentationExternalPlant - FFM</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #f4f6f9;
-    --card: #ffffff;
-    --blue: #0057FF;
-    --blue-light: #e8efff;
-    --blue-dark: #0040cc;
-    --gray: #8a93a2;
-    --gray-light: #e8eaed;
-    --text: #1a1d23;
-    --text-sub: #5a6272;
-    --red: #e53935;
-    --green: #00c853;
-    --border: #dde1e8;
-    --radius: 12px;
-    --shadow: 0 4px 16px rgba(0,87,255,0.06);
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding-bottom: 40px;
-  }
-
-  /* TOOLBAR */
-  .toolbar {
-    background: var(--blue);
-    color: white;
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    height: 56px;
-    gap: 14px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 12px rgba(0,87,255,0.2);
-  }
-  .toolbar .back-btn {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-  }
-  .toolbar h1 {
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-  }
-
-  /* CONTENT */
-  .content {
-    padding: 20px 16px;
-    max-width: 480px;
-    margin: 0 auto;
-  }
-
-  .page-title {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-  .page-sub {
-    font-size: 13px;
-    color: var(--text-sub);
-    margin-bottom: 20px;
-  }
-
-  /* CARDS */
-  .card {
-    background: var(--card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px;
-    margin-bottom: 16px;
-    border: 1px solid rgba(0,87,255,0.05);
-  }
-  .card-header {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-  }
-  .card-header svg { color: var(--blue); flex-shrink: 0; }
-
-  /* FORMS, INPUTS & SELECTS */
-  .field-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text-sub);
-    margin-bottom: 6px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-  .field-row {
-    display: flex;
-    align-items: center;
-    background: var(--bg);
-    border-radius: 8px;
-    border: 1.5px solid var(--border);
-    padding: 0 12px;
-    height: 46px;
-    margin-bottom: 16px;
-    transition: border-color 0.2s, background 0.2s;
-  }
-  .field-row:focus-within {
-    border-color: var(--blue);
-    background: white;
-  }
-  .field-row input, .field-row select {
-    flex: 1;
-    border: none;
-    background: transparent;
-    font-size: 14px;
-    color: var(--text);
-    outline: none;
-    height: 100%;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .field-row input.mono {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-  }
-  .field-row select {
-    cursor: pointer;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238a93a2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
-    background-repeat: no-repeat;
-    background-position: right center;
-    background-size: 16px;
-    padding-right: 24px;
-    appearance: none;
-  }
-  .field-row input::placeholder { color: var(--gray); }
-  
-  .qr-icon-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--blue);
-    display: flex;
-    align-items: center;
-    padding: 6px;
-    border-radius: 6px;
-    transition: background 0.15s;
-  }
-  .qr-icon-btn:hover { background: var(--blue-light); }
-
-  /* DYNAMIC STUB ANIMATION */
-  #seccionEdificioStub {
-    display: none;
-    animation: fadeSlide 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
-    border-left: 4px solid var(--blue);
-  }
-
-  /* BUTTONS */
-  .btn-primary {
-    width: 100%;
-    height: 50px;
-    background: var(--blue);
-    color: white;
-    border: none;
-    border-radius: var(--radius);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-    box-shadow: 0 4px 12px rgba(0,87,255,0.25);
-    margin-top: 10px;
-  }
-  .btn-primary:hover { background: var(--blue-dark); }
-  .btn-primary:active { transform: scale(0.98); }
-
-  @keyframes fadeSlide {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TPFFM - Registro de Splitter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen flex flex-col justify-between font-sans">
 
-<div class="toolbar">
-  <button class="back-btn" onclick="alert('Regresando a menú principal...')">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-  </button>
-  <h1>RegisterSplitterDocumentationExternalPlantFragment</h1>
-</div>
+    <header class="bg-blue-700 text-white p-4 shadow-md flex items-center">
+        <button class="mr-4 text-xl">←</button>
+        <h1 class="text-lg font-bold">Registro de Splitter</h1>
+    </header>
 
-<div class="content">
-  <p class="page-title">Documentación Planta Externa</p>
-  <p class="page-sub">Validación e integración de Splitter en Infraestructura de Calle</p>
+    <main class="flex-1 p-4 max-w-md mx-auto w-full">
+        <div class="bg-white p-6 rounded-lg shadow-md space-y-4">
+            
+            <form id="splitterForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Código QR / Barras</label>
+                    <div class="flex rounded-md shadow-sm">
+                        <input type="text" id="splitterQR" required
+                            class="flex-1 block w-full rounded-l-md border-gray-300 border p-2 text-gray-900 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                            placeholder="Escanee o ingrese el QR">
+                        <button type="button" id="btnScan" class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm hover:bg-gray-100">
+                            📷
+                        </button>
+                    </div>
+                </div>
 
-  <div class="card">
-    <div class="card-header">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-      Parámetros Técnicos de Red
-    </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Etiqueta (Label ID)</label>
+                    <input type="text" id="labelId" required
+                        class="block w-full rounded-md border-gray-300 border p-2 text-gray-900 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                        placeholder="Ej. RE-JUA-01-SPL-02">
+                </div>
 
-    <div class="field-label">Información de OLT / Nodo (mBinding.I)</div>
-    <div class="field-row">
-      <input type="text" id="oltScanInput" class="mono" placeholder="Escanea o ingresa datos de OLT/Nodo" style="text-transform: uppercase;">
-      <button class="qr-icon-btn" onclick="openScanner('M')" title="Escanear OLT">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
-      </button>
-    </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Modelo de Splitter</label>
+                    <input type="text" id="model" required
+                        class="block w-full rounded-md border-gray-300 border p-2 text-gray-900 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                        placeholder="Ej. Huawei OptiX DTS">
+                </div>
 
-    <div class="field-label">Tipo de Ubicación (ListJ0)</div>
-    <div class="field-row">
-      <select id="spinnerUbicacion" onchange="conmutarViewStubEdificio(this.value)">
-        <option value="">Selecciona una opción</option>
-        <option value="Interior/Edificio">Interior/Edificio</option>
-        <option value="Poste">Poste</option>
-        <option value="Canalizado/Bajo suelo">Canalizado/Bajo suelo</option>
-      </select>
-    </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Número de Puertos</label>
+                    <input type="number" id="portNumber" required
+                        class="block w-full rounded-md border-gray-300 border p-2 text-gray-900 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                        placeholder="Ej. 8 o 16">
+                </div>
 
-    <div class="field-label">Marca del Equipo (ListJ02)</div>
-    <div class="field-row">
-      <select id="spinnerMarca">
-        <option value="">Selecciona una opción</option>
-        <option value="SAMSUNG">SAMSUNG</option>
-        <option value="FIBERHOME">FIBERHOME</option>
-        <option value="LG">LG</option>
-        <option value="HUAWEI">HUAWEI</option>
-      </select>
-    </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Dirección / Ubicación</label>
+                    <textarea id="address" rows="2" required
+                        class="block w-full rounded-md border-gray-300 border p-2 text-gray-900 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                        placeholder="Dirección física o coordenadas geográficas"></textarea>
+                </div>
 
-    <div class="field-label">Relación de División / Ratio (ListJ03)</div>
-    <div class="field-row">
-      <select id="spinnerRatio">
-        <option value="">Selecciona una opción</option>
-        <option value="1:8">1:8</option>
-        <option value="1:16">1:16</option>
-        <option value="1:24">1:24</option>
-        <option value="1:32">1:32</option>
-        <option value="1:48">1:48</option>
-      </select>
-    </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Estado</label>
+                    <select id="status" class="block w-full rounded-md border-gray-300 border p-2 bg-white text-gray-900 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        <option value="Disponible">Disponible</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Dañado">Dañado / Mantenimiento</option>
+                    </select>
+                </div>
+            </form>
 
-    <div class="field-label">Tipo de Inmueble (ListJ04)</div>
-    <div class="field-row">
-      <select id="spinnerInmueble">
-        <option value="">Selecciona una opción</option>
-        <option value="EDIFICIO">EDIFICIO</option>
-        <option value="CASA">CASA</option>
-        <option value="FRACCIONAMIENTO">FRACCIONAMIENTO</option>
-        <option value="CENTRO COMERCIAL">CENTRO COMERCIAL</option>
-        <option value="EDIFICIO CORPORATIVO">EDIFICIO CORPORATIVO</option>
-        <option value="PARQUE INDUSTRIAL">PARQUE INDUSTRIAL</option>
-      </select>
-    </div>
-  </div>
+        </div>
+    </main>
 
-  <div class="card" id="seccionEdificioStub">
-    <div class="card-header">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 7V5a2 2 0 0 1 2-2h2m10 0h2a2 2 0 0 1 2 2v2M3 17V9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8M9 21V9m6 12V9"/></svg>
-      Detalles Internos (mBuildingFieldsStub)
-    </div>
+    <footer class="p-4 bg-gray-100 max-w-md mx-auto w-full">
+        <button type="button" id="btnContinue" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:bg-blue-700 transition duration-200">
+            CONTINUAR
+        </button>
+    </footer>
 
-    <div class="field-label">Nombre del Edificio (buildingName)</div>
-    <div class="field-row">
-      <input type="text" id="inputBuildingName" placeholder="Ej. Torre Norte">
-    </div>
+    <script>
+        document.getElementById('btnContinue').addEventListener('click', async () => {
+            // 1. Recolección y limpieza de datos (Sanitización básica)
+            const payload = {
+                qr_code: document.getElementById('splitterQR').value.trim().toUpperCase(),
+                label: document.getElementById('labelId').value.trim(),
+                model: document.getElementById('model').value.trim(),
+                port_number: parseInt(document.getElementById('portNumber').value, 10),
+                address: document.getElementById('address').value.trim(),
+                status: document.getElementById('status').value,
+                registered_at: new Date().toISOString()
+            };
 
-    <div class="field-label">Número de Torre (towerNumber)</div>
-    <div class="field-row">
-      <input type="text" id="inputTowerNumber" placeholder="Ej. Bloque C">
-    </div>
+            // Validación rápida antes de enviar
+            if(!payload.qr_code || !payload.label || isNaN(payload.port_number)) {
+                alert("Por favor, llena todos los campos obligatorios.");
+                return;
+            }
 
-    <div class="field-label">Número de Piso (floorNumber)</div>
-    <div class="field-row">
-      <input type="text" id="inputFloorNumber" placeholder="Ej. Piso 3">
-    </div>
+            // 2. Envío al Cloudflare Worker
+            try {
+                const response = await fetch('https://tu-worker.tu-subdominio.workers.dev/api/splitter', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-    <div class="field-label">Número de Departamento / Oficina (apartmentNumber)</div>
-    <div class="field-row">
-      <input type="text" id="inputApartmentNumber" placeholder="Ej. Depto 301">
-    </div>
+                const result = await response.json();
 
-    <div class="field-label">Total de Pisos del Edificio (numberFloors)</div>
-    <div class="field-row">
-      <input type="number" id="inputNumberFloors" placeholder="Ej. 12">
-    </div>
-  </div>
+                if (response.ok) {
+                    alert("✅ Splitter dado de alta exitosamente con el código QR.");
+                    document.getElementById('splitterForm').reset();
+                } else {
+                    alert("❌ Error: " + result.message);
+                }
+            } catch (error) {
+                console.error("Error de conexión:", error);
+                alert("❌ No se pudo conectar con el servidor. Revisa tu conexión a internet.");
+            }
+        });
 
-  <div class="card">
-    <div class="card-header">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-      Identificación Física del Dispositivo
-    </div>
-
-    <div class="field-label">Código del Splitter / QR (mBinding.P)</div>
-    <div class="field-row">
-      <input type="text" id="splitterScanInput" class="mono" placeholder="Escanea código de barras del dispositivo" style="text-transform: uppercase;" oninput="aplicarRegla18Caracteres(this.value)">
-      <button class="qr-icon-btn" onclick="openScanner('N')" title="Escanear Splitter">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <button class="btn-primary" onclick="procesarEnvioPlantaExterna()">Actualizar OLT / Registrar</button>
-</div>
-
-<div class="scanner-overlay" id="scannerOverlay">
-  <div class="scanner-box">
-    <div class="scanner-inner">
-      <div class="scan-line"></div>
-      <div class="corner tl"></div>
-      <div class="corner tr"></div>
-      <div class="corner bl"></div>
-      <div class="corner br"></div>
-    </div>
-  </div>
-  <p class="scanner-txt" id="scannerInstruction">Apunte al código de barras</p>
-  <button class="scanner-close" onclick="ejecutarCapturaCamara()">Capturar Código</button>
-  <button class="scanner-close" style="background:transparent;margin-top:8px;opacity:0.6" onclick="document.getElementById('scannerOverlay').classList.remove('open')">Cancelar</button>
-</div>
-
-<script>
-  let modoEscaneoActivo = 'M';
-
-  function openScanner(mode) {
-    modoEscaneoActivo = mode;
-    document.getElementById('scannerInstruction').textContent = 
-      mode === 'M' ? "Escaneando Infraestructura OLT/Nodo (Modo M)" : "Escaneando Código de Dispositivo Splitter (Modo N)";
-    document.getElementById('scannerOverlay').classList.add('open');
-  }
-
-  // Lógica de conmutación exacta de la clase anidada C0467e (ViewStub)
-  function conmutarViewStubEdificio(seleccion) {
-    const contenedorEdificio = document.getElementById('seccionEdificioStub');
-    
-    if (seleccion === "Interior/Edificio") {
-      contenedorEdificio.style.display = "block"; // viewStub.inflate() / VISIBILITY(0)
-    } else {
-      contenedorEdificio.style.display = "none";  // VISIBILITY(8)
-      // Limpieza mandatoria de los campos ocultados para evitar basura en base de datos
-      document.getElementById('inputBuildingName').value = "";
-      document.getElementById('inputTowerNumber').value = "";
-      document.getElementById('inputFloorNumber').value = "";
-      document.getElementById('inputApartmentNumber').value = "";
-      document.getElementById('inputNumberFloors').value = "";
-    }
-  }
-
-  // Regla de negocio del onActivityResult del APK: truncar a un máximo de 18 caracteres
-  function aplicarRegla18Caracteres(texto) {
-    const inputSplitter = document.getElementById('splitterScanInput');
-    if (texto.length > 18) {
-      inputSplitter.value = texto.substring(0, 18).toUpperCase();
-      console.log("FFM Rule Applied: Splitter string limited to 18 chars.");
-    }
-  }
-
-  // Simulación del retorno de la actividad de escaneo (onActivityResult)
-  function ejecutarCapturaCamara() {
-    document.getElementById('scannerOverlay').classList.remove('open');
-    
-    if (modoEscaneoActivo === 'M') {
-      document.getElementById('oltScanInput').value = "OLT-CJU-ZEUS-02";
-    } else {
-      const mockCodigoLargo = "SPL-990-2026-FIBERHOME-EXTERNO";
-      document.getElementById('splitterScanInput').value = mockCodigoLargo;
-      aplicarRegla18Caracteres(mockCodigoLargo); // Aplica el recorte automático
-    }
-  }
-
-  // Implementación del método de envío y validaciones de campo del Fragment (Método P0)
-  function procesarEnvioPlantaExterna() {
-    const olt = document.getElementById('oltScanInput').value.trim();
-    const ubicacion = document.getElementById('spinnerUbicacion').value;
-    const marca = document.getElementById('spinnerMarca').value;
-    const ratio = document.getElementById('spinnerRatio').value;
-    const inmueble = document.getElementById('spinnerInmueble').value;
-    const splitter = document.getElementById('splitterScanInput').value.trim();
-
-    // Validación P0: Validar que todos los Spinners generales de la OLT tengan datos seleccionados
-    if (!olt || !ubicacion || !marca || !ratio || !inmueble || !splitter) {
-      alert("❌ Error de Validación (P0 / APK):\n'Información de OLT inválida'. Todos los selectores y códigos de escaneo mandatorios deben ser capturados.");
-      return;
-    }
-
-    // Validación agregada del ViewStub: si es Edificio, sus parámetros internos no deben ir vacíos
-    if (ubicacion === "Interior/Edificio") {
-      const bName = document.getElementById('inputBuildingName').value.trim();
-      const tNum = document.getElementById('inputTowerNumber').value.trim();
-      const fNum = document.getElementById('inputFloorNumber').value.trim();
-
-      if (!bName || !tNum || !fNum) {
-        alert("❌ Error de Infraestructura:\nAl seleccionar 'Interior/Edificio' es obligatorio capturar el Nombre de Edificio, Torre y Piso.");
-        return;
-      }
-    }
-
-    // Payload idéntico mapeado listo para enviar a Cloudflare Workers
-    const payloadPlantaExterna = {
-      oltData: olt,
-      tipoUbicacion: ubicacion,
-      marcaEquipo: marca,
-      ratioSplitter: ratio,
-      tipoInmueble: inmueble,
-      idSplitter: splitter,
-      detallesEdificio: ubicacion === "Interior/Edificio" ? {
-        buildingName: document.getElementById('inputBuildingName').value.trim(),
-        towerNumber: document.getElementById('inputTowerNumber').value.trim(),
-        floorNumber: document.getElementById('inputFloorNumber').value.trim(),
-        apartmentNumber: document.getElementById('inputApartmentNumber').value.trim(),
-        totalFloors: document.getElementById('inputNumberFloors').value
-      } : null,
-      timestamp: new Date().toISOString()
-    };
-
-    console.log("Transmisión de datos empaquetada FFM:", payloadPlantaExterna);
-    alert(`✓ Petición generada con éxito.\nAcción: "Actualizando OLT"\n\nSplitter validado e integrado: ${payloadPlantaExterna.idSplitter}`);
-  }
-</script>
+        // Simulación o integración del botón de cámara si usas WebView/Lector externo
+        document.getElementById('btnScan').addEventListener('click', () => {
+            console.log("Detonando lector nativo/cámara...");
+            // Aquí puedes enlazar tu lógica o puente JS en caso de usar un WebView nativo.
+        });
+    </script>
 </body>
 </html>
