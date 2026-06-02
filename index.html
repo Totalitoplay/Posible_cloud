@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOC - Monitor Interno de Red</title>
+    <title>NOC - Monitor Interno de Planta Externa</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/dist/min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -50,11 +50,11 @@
     <nav class="navbar navbar-expand-lg navbar-dark navbar-noc py-3 shadow">
         <div class="container-fluid">
             <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
-                <span class="status-dot me-2"></span>
-                <span>NOC - SINCRO LIVE</span>
+                <span class="status-dot me-2" id="dot-estado"></span>
+                <span>NOC - LIVE SINCRO</span>
             </a>
             <div class="d-flex align-items-center text-white gap-3">
-                <span class="badge bg-dark p-2 text-warning border border-warning" id="estado-conexion">Conectando...</span>
+                <span class="badge bg-dark p-2 text-warning border border-warning" id="estado-conexion">Iniciando...</span>
                 <span class="badge bg-success p-2" id="reloj">00:00:00</span>
             </div>
         </div>
@@ -67,7 +67,7 @@
                 <div class="card card-indicador bg-total p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Alertas Activas</h6>
+                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Alertas Totales</h6>
                             <h2 class="fw-bold m-0 mt-1" id="num-total">0</h2>
                         </div>
                         <i class="fa-solid fa-network-wired fa-2x text-white-50"></i>
@@ -100,7 +100,7 @@
                 <div class="card card-indicador bg-pow p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Energía (POW)</h6>
+                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Falla Energía (POW)</h6>
                             <h2 class="fw-bold m-0 mt-1" id="num-pow">0</h2>
                         </div>
                         <i class="fa-solid fa-bolt-lightning fa-2x text-white-50"></i>
@@ -114,7 +114,7 @@
                 <div class="bg-white p-3 rounded-3 shadow-sm d-flex gap-2">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                        <input type="text" id="buscador" class="form-control border-start-0 bg-light" placeholder="Escribe el nombre de un equipo, OLT, distrito o región técnica..." onkeyup="ejecutarFiltroGeneral()">
+                        <input type="text" id="buscador" class="form-control border-start-0 bg-light" placeholder="Filtrar por OLT, Región, Distrito Técnico..." onkeyup="ejecutarFiltroGeneral()">
                     </div>
                     <button class="btn btn-outline-dark" onclick="solicitarDatosReales()"><i class="fa-solid fa-arrows-rotate"></i></button>
                 </div>
@@ -126,7 +126,7 @@
                 <div class="tabla-contenedor p-3">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="m-0 fw-bold text-secondary">
-                            <i class="fa-solid fa-list-check me-2"></i>Alarmas Registradas en Producción
+                            <i class="fa-solid fa-list-check me-2"></i>Monitoreo Operativo en Tiempo Real
                         </h5>
                         <span class="badge bg-secondary" id="tag-filtro">Vista: Todos</span>
                     </div>
@@ -136,14 +136,14 @@
                                 <tr>
                                     <th>Elemento de Red / OLT</th>
                                     <th>Tipo de Evento</th>
-                                    <th>Región / Entidad</th>
+                                    <th>Ubicación Geográfica</th>
                                     <th>Clientes Afectados</th>
-                                    <th>Inicio Reportado</th>
+                                    <th>Fecha de Inicio</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">Esperando respuesta del Cloudflare Worker...</td>
+                                    <td colspan="5" class="text-center text-muted py-4">Estableciendo enlace con el proxy de Cloudflare...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -156,135 +156,132 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Endpoint configurado apuntando a tu Cloudflare Worker
         const WORKER_URL = "https://noc-api-bridge.playtotalito.workers.dev";
-        
-        // Memoria interna de la aplicación
         let datasetAlarmas = [];
         let filtroTipoActual = "TODOS";
 
         window.onload = function() {
             solicitarDatosReales();
             
-            // Reloj en tiempo real en la barra superior
-            setInterval(() => {
-                document.getElementById('reloj').innerText = new Date().toLocaleTimeString();
+            // Reloj cabecera
+            setInterval(function() {
+                const reloj = document.getElementById('reloj');
+                if(reloj) reloj.innerText = new Date().toLocaleTimeString();
             }, 1000);
 
-            // Consultar actualizaciones automáticamente cada 3 minutos
+            // Refresco cada 3 minutos
             setInterval(solicitarDatosReales, 180000);
         };
 
-        // Función principal que consume el Worker
-    async function solicitarDatosReales() {
-    const indicadorConexion = document.getElementById('estado-conexion');
-    if(indicadorConexion) {
-        indicadorConexion.className = "badge bg-warning text-dark";
-        indicadorConexion.innerText = "Sincronizando...";
-    }
+        async function solicitarDatosReales() {
+            const indicador = document.getElementById('estado-conexion');
+            const dot = document.getElementById('dot-estado');
+            if (indicador) {
+                indicador.className = "badge bg-warning text-dark";
+                indicador.innerText = "Sincronizando...";
+            }
 
-    try {
-        // Hace un GET limpio al Worker de Cloudflare
-        let respuesta = await fetch(WORKER_URL);
-        if (!respuesta.ok) {
-            throw new Error(`HTTP Error: ${respuesta.status}`);
+            try {
+                let respuesta = await fetch(WORKER_URL);
+                if (!respuesta.ok) throw new Error("HTTP Status Error: " + respuesta.status);
+                
+                let JSON_NOC = await respuesta.json();
+                
+                if (Array.isArray(JSON_NOC)) {
+                    datasetAlarmas = JSON_NOC.map(function(item, index) {
+                        return {
+                            id: item.idAlarma || item.id || index,
+                            olt: item.olt || item.oltName || item.elemento || item.nombreElemento || "EQUIPO_NOC",
+                            tipo: (item.tipo || item.tipoAlarma || item.categoria || "CFO").toUpperCase().trim(),
+                            region: item.ubicacion || item.region || item.distrito || item.entidad || "MÉXICO",
+                            clientes: parseInt(item.clientesCount || item.userCount || item.afectados || item.totalAfectados || 0, 10),
+                            fecha: item.inicio || item.fechaInicio || item.fecha || "--:--"
+                        };
+                    });
+                } else {
+                    datasetAlarmas = [];
+                }
+
+                if (indicador && dot) {
+                    indicador.className = "badge bg-success";
+                    indicador.innerText = "ONLINE";
+                    dot.style.backgroundColor = "#10b981";
+                }
+
+                renderizarContadores();
+                ejecutarFiltroGeneral();
+
+            } catch (error) {
+                console.error("Fallo de mapeo:", error);
+                if (indicador && dot) {
+                    indicador.className = "badge bg-danger";
+                    indicador.innerText = "DESCONECTADO";
+                    dot.style.backgroundColor = "#dc2626";
+                }
+                
+                const tbody = document.querySelector("#tablaMaster tbody");
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4"><i class="fa-solid fa-triangle-exclamation me-2"></i>La memoria del Worker se encuentra vacía o la sesión ha expirado en el backend.</td></tr>';
+                }
+            }
         }
-        
-        let JSON_NOC = await respuesta.json();
-        
-        // MAPEADO COMPATIBLE: Extrae los nombres de variables idénticos al JSON del NOC original
-        datasetAlarmas = JSON_NOC.map((item, index) => {
-            return {
-                id: item.idAlarma || index,
-                // Si el JSON real usa otra propiedad, se mapea aquí (ej: item.olt o item.nombreElemento)
-                olt: item.olt || item.oltName || item.elemento || "EQUIPO_NOC",
-                tipo: (item.tipo || item.tipoAlarma || "CFO").toUpperCase().trim(),
-                region: item.ubicacion || item.region || item.distrito || "MÉXICO",
-                clientes: item.clientesCount || item.userCount || item.afectados || 0,
-                fecha: item.inicio || item.fechaInicio || "--:-- --/--"
-            };
-        });
 
-        if(indicadorConexion) {
-            indicadorConexion.className = "badge bg-success";
-            indicadorConexion.innerText = "ONLINE";
-        }
-
-        renderizarContadores();
-        ejecutarFiltroGeneral();
-
-    } catch (error) {
-        console.error("Error en la sincronización del frontend:", error);
-        if(indicadorConexion) {
-            indicadorConexion.className = "badge bg-danger";
-            indicadorConexion.innerText = "ERROR DE ENLACE";
-        }
-        
-        const tbody = document.querySelector("#tablaMaster tbody");
-        if(tbody) {
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4"><i class="fa-solid fa-triangle-exclamation me-2"></i>El Worker está vacío o Google Cloud Functions aún no le deposita datos.</td></tr>`;
-        }
-    }
-}
-
-        // Calcula el total de elementos activos por categoría
         function renderizarContadores() {
             let total = datasetAlarmas.length;
-            let cfos = datasetAlarmas.filter(x => x.tipo === "CFO" || x.tipo === "CORTE").length;
-            let afos = datasetAlarmas.filter(x => x.tipo === "AFO" || x.tipo === "ATENUACION").length;
-            let pows = datasetAlarmas.filter(x => x.tipo === "POW" || x.tipo === "ENERGIA").length;
+            let cfos = datasetAlarmas.filter(function(x) { return x.tipo === "CFO" || x.tipo === "CORTE"; }).length;
+            let afos = datasetAlarmas.filter(function(x) { return x.tipo === "AFO" || x.tipo === "ATENUACION"; }).length;
+            let pows = datasetAlarmas.filter(function(x) { return x.tipo === "POW" || x.tipo === "ENERGIA"; }).length;
 
-            document.getElementById('num-total').innerText = total;
-            document.getElementById('num-cfo').innerText = cfos;
-            document.getElementById('num-afo').innerText = afos;
-            document.getElementById('num-pow').innerText = pows;
+            if(document.getElementById('num-total')) document.getElementById('num-total').innerText = total;
+            if(document.getElementById('num-cfo')) document.getElementById('num-cfo').innerText = cfos;
+            if(document.getElementById('num-afo')) document.getElementById('num-afo').innerText = afos;
+            if(document.getElementById('num-pow')) document.getElementById('num-pow').innerText = pows;
         }
 
         function filtrarPorTipo(tipo) {
             filtroTipoActual = tipo;
-            document.getElementById('tag-filtro').innerText = `Vista: ${tipo}`;
+            const tag = document.getElementById('tag-filtro');
+            if(tag) tag.innerText = "Vista: " + tipo;
             ejecutarFiltroGeneral();
         }
 
-        // Procesa las búsquedas del campo de texto combinadas con los clics de los contadores
         function ejecutarFiltroGeneral() {
-            let busqueda = document.getElementById('buscador').value.toLowerCase().trim();
+            const buscador = document.getElementById('buscador');
+            let txt = buscador ? buscador.value.toLowerCase().trim() : "";
 
-            let datosFiltrados = datasetAlarmas.filter(item => {
+            let filtrados = datasetAlarmas.filter(function(item) {
                 let coincideTipo = (filtroTipoActual === "TODOS" || item.tipo === filtroTipoActual);
-                let coincideTexto = item.olt.toLowerCase().includes(busqueda) || 
-                                     item.region.toLowerCase().includes(busqueda) || 
-                                     item.tipo.toLowerCase().includes(busqueda);
+                let coincideTexto = item.olt.toLowerCase().includes(txt) || 
+                                     item.region.toLowerCase().includes(txt) || 
+                                     item.tipo.toLowerCase().includes(txt);
                 return coincideTipo && coincideTexto;
             });
 
-            dibujarTabla(datosFiltrados);
+            dibujarTabla(filtrados);
         }
 
-        // Dibuja dinámicamente las filas HTML recibidas de producción
         function dibujarTabla(datos) {
             const tbody = document.querySelector("#tablaMaster tbody");
+            if(!tbody) return;
             tbody.innerHTML = "";
 
             if (datos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">No se encontraron alarmas que coincidan con el criterio actual.</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No se registran alarmas bajo este criterio.</td></tr>';
                 return;
             }
 
-            datos.forEach(row => {
+            datos.forEach(function(row) {
                 let badgeClase = "bg-danger";
-                if(row.tipo === "AFO" || row.tipo === "ATENUACION") badgeClase = "bg-warning text-dark";
-                if(row.tipo === "POW" || row.tipo === "ENERGIA") badgeClase = "bg-primary";
+                if (row.tipo === "AFO" || row.tipo === "ATENUACION") badgeClase = "bg-warning text-dark";
+                if (row.tipo === "POW" || row.tipo === "ENERGIA") badgeClase = "bg-primary";
 
-                let tr = `
-                    <tr>
-                        <td class="fw-bold text-dark">${row.olt}</td>
-                        <td><span class="badge ${badgeClase}">${row.tipo}</span></td>
-                        <td><i class="fa-solid fa-location-dot me-1 text-muted"></i>${row.region}</td>
-                        <td class="fw-bold text-secondary"><i class="fa-solid fa-users me-1"></i>${row.clientes}</td>
-                        <td class="small text-muted">${row.fecha}</td>
-                    </tr>
-                `;
+                let tr = '<tr>' +
+                    '<td class="fw-bold text-dark">' + row.olt + '</td>' +
+                    '<td><span class="badge ' + badgeClase + '">' + row.tipo + '</span></td>' +
+                    '<td><i class="fa-solid fa-location-dot me-1 text-muted"></i>' + row.region + '</td>' +
+                    '<td class="fw-bold text-secondary"><i class="fa-solid fa-users me-1"></i>' + row.clientes + '</td>' +
+                    '<td class="small text-muted">' + row.fecha + '</td>' +
+                    '</tr>';
                 tbody.innerHTML += tr;
             });
         }
