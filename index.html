@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Instalación de Splitter a DP - FFM</title>
+<title>RegisterSplitterDocumentationExternalPlant - FFM</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -57,7 +57,7 @@
     align-items: center;
   }
   .toolbar h1 {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     letter-spacing: 0.2px;
   }
@@ -90,7 +90,7 @@
     border: 1px solid rgba(0,87,255,0.05);
   }
   .card-header {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--text);
     margin-bottom: 16px;
@@ -102,7 +102,7 @@
   }
   .card-header svg { color: var(--blue); flex-shrink: 0; }
 
-  /* FORMS & INPUTS */
+  /* FORMS, INPUTS & SELECTS */
   .field-label {
     font-size: 11px;
     font-weight: 700;
@@ -142,6 +142,15 @@
     font-weight: 600;
     letter-spacing: 0.5px;
   }
+  .field-row select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238a93a2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+    background-repeat: no-repeat;
+    background-position: right center;
+    background-size: 16px;
+    padding-right: 24px;
+    appearance: none;
+  }
   .field-row input::placeholder { color: var(--gray); }
   
   .qr-icon-btn {
@@ -156,6 +165,13 @@
     transition: background 0.15s;
   }
   .qr-icon-btn:hover { background: var(--blue-light); }
+
+  /* DYNAMIC STUB ANIMATION */
+  #seccionEdificioStub {
+    display: none;
+    animation: fadeSlide 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+    border-left: 4px solid var(--blue);
+  }
 
   /* BUTTONS */
   .btn-primary {
@@ -175,109 +191,54 @@
   }
   .btn-primary:hover { background: var(--blue-dark); }
   .btn-primary:active { transform: scale(0.98); }
-  .btn-primary:disabled { background: var(--gray); box-shadow: none; cursor: not-allowed; opacity: 0.6; }
 
-  /* SCANNER OVERLAY */
-  .scanner-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.94);
-    z-index: 200;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-  .scanner-overlay.open { display: flex; }
-  .scanner-box {
-    width: 250px;
-    height: 250px;
-    position: relative;
-    margin-bottom: 30px;
-  }
-  .scanner-box .corner {
-    position: absolute;
-    width: 35px;
-    height: 35px;
-    border-color: var(--blue);
-    border-style: solid;
-  }
-  .corner.tl { top: 0; left: 0; border-width: 4px 0 0 4px; border-radius: 4px 0 0 4px; }
-  .corner.tr { top: 0; right: 0; border-width: 4px 4px 0 0; border-radius: 0 4px 0 0; }
-  .corner.bl { bottom: 0; left: 0; border-width: 0 0 4px 4px; border-radius: 0 0 0 4px; }
-  .corner.br { bottom: 0; right: 0; border-width: 0 4px 4px 0; border-radius: 0 0 4px 0; }
-  .scan-line {
-    position: absolute;
-    left: 6px; right: 6px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--blue), transparent);
-    animation: scanMove 2s ease-in-out infinite;
-    top: 10%;
-  }
-  @keyframes scanMove {
-    0%, 100% { top: 10%; }
-    50% { top: 90%; }
-  }
-  .scanner-inner {
-    width: 100%; height: 100%;
-    background: rgba(255,255,255,0.03);
-    border-radius: 4px;
-  }
-  .scanner-txt { color: white; font-size: 13px; text-align: center; opacity: 0.8; margin-bottom: 20px; }
-  .scanner-close {
-    background: rgba(255,255,255,0.15);
-    border: none;
-    color: white;
-    padding: 10px 24px;
-    border-radius: 8px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>
 </head>
 <body>
 
 <div class="toolbar">
-  <button class="back-btn" onclick="window.close() || alert('Cerrando módulo...')">
+  <button class="back-btn" onclick="alert('Regresando a menú principal...')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
   </button>
-  <h1>InstallationOfSplitterToDPActivity</h1>
+  <h1>RegisterSplitterDocumentationExternalPlantFragment</h1>
 </div>
 
 <div class="content">
-  <p class="page-title">Documentación de OLT / DP</p>
-  <p class="page-sub">Módulo de Planta Interna & Alta de Splitters Corporativos</p>
+  <p class="page-title">Documentación Planta Externa</p>
+  <p class="page-sub">Validación e integración de Splitter en Infraestructura de Calle</p>
 
   <div class="card">
     <div class="card-header">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-      Infraestructura de Red (Datos OLT)
+      Parámetros Técnicos de Red
     </div>
 
-    <div class="field-label">Resultado Escaneo OLT (mBinding.I)</div>
+    <div class="field-label">Información de OLT / Nodo (mBinding.I)</div>
     <div class="field-row">
-      <input type="text" id="oltScanInput" class="mono" placeholder="Esperando escaneo de OLT..." style="text-transform: uppercase;">
+      <input type="text" id="oltScanInput" class="mono" placeholder="Escanea o ingresa datos de OLT/Nodo" style="text-transform: uppercase;">
       <button class="qr-icon-btn" onclick="openScanner('M')" title="Escanear OLT">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
       </button>
     </div>
 
-    <div class="field-label">Tipo de Elemento / Ubicación (ArrayList)</div>
+    <div class="field-label">Tipo de Ubicación (ListJ0)</div>
     <div class="field-row">
-      <select id="spinnerTipoInstalacion">
-        <option value="">Selecciona Ubicación...</option>
+      <select id="spinnerUbicacion" onchange="conmutarViewStubEdificio(this.value)">
+        <option value="">Selecciona una opción</option>
         <option value="Interior/Edificio">Interior/Edificio</option>
         <option value="Poste">Poste</option>
         <option value="Canalizado/Bajo suelo">Canalizado/Bajo suelo</option>
       </select>
     </div>
 
-    <div class="field-label">Marca del Equipo (ArrayList 2)</div>
+    <div class="field-label">Marca del Equipo (ListJ02)</div>
     <div class="field-row">
-      <select id="spinnerMarcaEquipo">
-        <option value="">Selecciona Marca...</option>
+      <select id="spinnerMarca">
+        <option value="">Selecciona una opción</option>
         <option value="SAMSUNG">SAMSUNG</option>
         <option value="FIBERHOME">FIBERHOME</option>
         <option value="LG">LG</option>
@@ -285,19 +246,22 @@
       </select>
     </div>
 
-    <div class="field-label">Relación de División / Ratio (ArrayList 3)</div>
+    <div class="field-label">Relación de División / Ratio (ListJ03)</div>
     <div class="field-row">
-      <select id="spinnerRatioSplitter">
-        <option value="">Selecciona Relación...</option>
+      <select id="spinnerRatio">
+        <option value="">Selecciona una opción</option>
         <option value="1:8">1:8</option>
         <option value="1:16">1:16</option>
+        <option value="1:24">1:24</option>
+        <option value="1:32">1:32</option>
+        <option value="1:48">1:48</option>
       </select>
     </div>
 
-    <div class="field-label">Tipo de Inmueble (ArrayList 4)</div>
+    <div class="field-label">Tipo de Inmueble (ListJ04)</div>
     <div class="field-row">
-      <select id="spinnerTipoInmueble">
-        <option value="">Selecciona Tipo...</option>
+      <select id="spinnerInmueble">
+        <option value="">Selecciona una opción</option>
         <option value="EDIFICIO">EDIFICIO</option>
         <option value="CASA">CASA</option>
         <option value="FRACCIONAMIENTO">FRACCIONAMIENTO</option>
@@ -308,22 +272,54 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="seccionEdificioStub">
     <div class="card-header">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-      Identificación del Splitter Asignado
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 7V5a2 2 0 0 1 2-2h2m10 0h2a2 2 0 0 1 2 2v2M3 17V9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8M9 21V9m6 12V9"/></svg>
+      Detalles Internos (mBuildingFieldsStub)
     </div>
 
-    <div class="field-label">Código de Barras / QR Splitter (mBinding.P)</div>
+    <div class="field-label">Nombre del Edificio (buildingName)</div>
     <div class="field-row">
-      <input type="text" id="splitterScanInput" class="mono" placeholder="Escanea código del dispositivo..." style="text-transform: uppercase;" oninput="validarReglaSplitter(this.value)">
-      <button class="qr-icon-btn" onclick="openScanner('N')" title="Escanear Código Splitter">
+      <input type="text" id="inputBuildingName" placeholder="Ej. Torre Norte">
+    </div>
+
+    <div class="field-label">Número de Torre (towerNumber)</div>
+    <div class="field-row">
+      <input type="text" id="inputTowerNumber" placeholder="Ej. Bloque C">
+    </div>
+
+    <div class="field-label">Número de Piso (floorNumber)</div>
+    <div class="field-row">
+      <input type="text" id="inputFloorNumber" placeholder="Ej. Piso 3">
+    </div>
+
+    <div class="field-label">Número de Departamento / Oficina (apartmentNumber)</div>
+    <div class="field-row">
+      <input type="text" id="inputApartmentNumber" placeholder="Ej. Depto 301">
+    </div>
+
+    <div class="field-label">Total de Pisos del Edificio (numberFloors)</div>
+    <div class="field-row">
+      <input type="number" id="inputNumberFloors" placeholder="Ej. 12">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+      Identificación Física del Dispositivo
+    </div>
+
+    <div class="field-label">Código del Splitter / QR (mBinding.P)</div>
+    <div class="field-row">
+      <input type="text" id="splitterScanInput" class="mono" placeholder="Escanea código de barras del dispositivo" style="text-transform: uppercase;" oninput="aplicarRegla18Caracteres(this.value)">
+      <button class="qr-icon-btn" onclick="openScanner('N')" title="Escanear Splitter">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
       </button>
     </div>
   </div>
 
-  <button class="btn-primary" id="btnEnviarOLT" onclick="ejecutarFuncionQ0()">Enviar a OLT</button>
+  <button class="btn-primary" onclick="procesarEnvioPlantaExterna()">Actualizar OLT / Registrar</button>
 </div>
 
 <div class="scanner-overlay" id="scannerOverlay">
@@ -336,89 +332,107 @@
       <div class="corner br"></div>
     </div>
   </div>
-  <p class="scanner-txt" id="scannerInstruction">Apunta la cámara al código de barras</p>
-  <button class="scanner-close" onclick="simulateScanResult()">Simular Lectura de Cámara</button>
-  <button class="scanner-close" style="background:transparent;margin-top:8px;opacity:0.6" onclick="closeScanner()">Cancelar</button>
+  <p class="scanner-txt" id="scannerInstruction">Apunte al código de barras</p>
+  <button class="scanner-close" onclick="ejecutarCapturaCamara()">Capturar Código</button>
+  <button class="scanner-close" style="background:transparent;margin-top:8px;opacity:0.6" onclick="document.getElementById('scannerOverlay').classList.remove('open')">Cancelar</button>
 </div>
 
 <script>
-  let activeScanMode = 'M'; // 'M' = OLT, 'N' = Splitter
+  let modoEscaneoActivo = 'M';
 
   function openScanner(mode) {
-    activeScanMode = mode;
-    const instruction = document.getElementById('scannerInstruction');
-    if (mode === 'M') {
-      instruction.textContent = "Escaneando Infraestructura OLT (Modo M)";
-    } else {
-      instruction.textContent = "Escaneando Identificador del Splitter (Modo N)";
-    }
+    modoEscaneoActivo = mode;
+    document.getElementById('scannerInstruction').textContent = 
+      mode === 'M' ? "Escaneando Infraestructura OLT/Nodo (Modo M)" : "Escaneando Código de Dispositivo Splitter (Modo N)";
     document.getElementById('scannerOverlay').classList.add('open');
   }
 
-  function closeScanner() {
-    document.getElementById('scannerOverlay').classList.remove('open');
-  }
-
-  // Regla estricta extraída del onActivityResult para el campo del Splitter (Modo N)
-  function validarReglaSplitter(val) {
-    const inputElement = document.getElementById('splitterScanInput');
+  // Lógica de conmutación exacta de la clase anidada C0467e (ViewStub)
+  function conmutarViewStubEdificio(seleccion) {
+    const contenedorEdificio = document.getElementById('seccionEdificioStub');
     
-    if (val.length > 0) {
-      // Regla del APK: Si mide más de 18 caracteres se trunca mediante un substring
-      if (val.length > 18) {
-        inputElement.value = val.substring(0, 18).toUpperCase();
-        console.log("APK Business Rule: Código de Splitter truncado a 18 caracteres max.");
-      }
-    }
-  }
-
-  // Simulación de respuesta de cámara (onActivityResult)
-  function simulateScanResult() {
-    closeScanner();
-    
-    // Mocks de códigos según la nomenclatura estándar detectada en la red de Totalplay
-    const mockOLT = "OLT-CJU-045-HUAWEI-S1";
-    const mockSplitterLong = "SPL-001-2026-FIBERHOME-MAX-X"; // Tiene más de 18 letras
-
-    if (activeScanMode === 'M') {
-      document.getElementById('oltScanInput').value = mockOLT;
+    if (seleccion === "Interior/Edificio") {
+      contenedorEdificio.style.display = "block"; // viewStub.inflate() / VISIBILITY(0)
     } else {
-      document.getElementById('splitterScanInput').value = mockSplitterLong;
-      // Disparamos la validación para que aplique el recorte de 18 caracteres obligatorio del APK
-      validarReglaSplitter(mockSplitterLong);
+      contenedorEdificio.style.display = "none";  // VISIBILITY(8)
+      // Limpieza mandatoria de los campos ocultados para evitar basura en base de datos
+      document.getElementById('inputBuildingName').value = "";
+      document.getElementById('inputTowerNumber').value = "";
+      document.getElementById('inputFloorNumber').value = "";
+      document.getElementById('inputApartmentNumber').value = "";
+      document.getElementById('inputNumberFloors').value = "";
     }
   }
 
-  // Lógica e implementación exacta de la función Q0() del APK descompilado
-  function ejecutarFuncionQ0() {
-    const oltVal = document.getElementById('oltScanInput').value.trim();
-    const tipoInstalacion = document.getElementById('spinnerTipoInstalacion').value;
-    const marca = document.getElementById('spinnerMarcaEquipo').value;
-    const ratio = document.getElementById('spinnerRatioSplitter').value;
-    const tipoInmueble = document.getElementById('spinnerTipoInmueble').value;
-    const splitterVal = document.getElementById('splitterScanInput').value.trim();
+  // Regla de negocio del onActivityResult del APK: truncar a un máximo de 18 caracteres
+  function aplicarRegla18Caracteres(texto) {
+    const inputSplitter = document.getElementById('splitterScanInput');
+    if (texto.length > 18) {
+      inputSplitter.value = texto.substring(0, 18).toUpperCase();
+      console.log("FFM Rule Applied: Splitter string limited to 18 chars.");
+    }
+  }
 
-    // Verificación estricta de vacíos: Si falta una sola variable, tira el error de OLT vacía
-    if (oltVal.length === 0 || tipoInstalacion.length === 0 || marca.length === 0 || ratio.length === 0 || tipoInmueble.length === 0 || splitterVal.length === 0) {
-      // Mapea a: nj.b.n0(this, Integer.valueOf(R.string.message_error_data_empty_olt))
-      alert("❌ message_error_data_empty_olt:\nNo se puede continuar. Todos los campos de la OLT y del Splitter deben estar completamente capturados.");
+  // Simulación del retorno de la actividad de escaneo (onActivityResult)
+  function ejecutarCapturaCamara() {
+    document.getElementById('scannerOverlay').classList.remove('open');
+    
+    if (modoEscaneoActivo === 'M') {
+      document.getElementById('oltScanInput').value = "OLT-CJU-ZEUS-02";
+    } else {
+      const mockCodigoLargo = "SPL-990-2026-FIBERHOME-EXTERNO";
+      document.getElementById('splitterScanInput').value = mockCodigoLargo;
+      aplicarRegla18Caracteres(mockCodigoLargo); // Aplica el recorte automático
+    }
+  }
+
+  // Implementación del método de envío y validaciones de campo del Fragment (Método P0)
+  function procesarEnvioPlantaExterna() {
+    const olt = document.getElementById('oltScanInput').value.trim();
+    const ubicacion = document.getElementById('spinnerUbicacion').value;
+    const marca = document.getElementById('spinnerMarca').value;
+    const ratio = document.getElementById('spinnerRatio').value;
+    const inmueble = document.getElementById('spinnerInmueble').value;
+    const splitter = document.getElementById('splitterScanInput').value.trim();
+
+    // Validación P0: Validar que todos los Spinners generales de la OLT tengan datos seleccionados
+    if (!olt || !ubicacion || !marca || !ratio || !inmueble || !splitter) {
+      alert("❌ Error de Validación (P0 / APK):\n'Información de OLT inválida'. Todos los selectores y códigos de escaneo mandatorios deben ser capturados.");
       return;
     }
 
-    // Si pasa la validación, empaqueta el objeto exactamente igual que el mDocumentationViewModel.u(...)
-    const payloadFFM = {
-      idSplitter: splitterVal,
-      oltMetadata: oltVal,
-      tipoInstalacion: tipoInstalacion,
-      marca: marca,
-      ratio: ratio,
-      tipoInmueble: tipoInmueble,
-      timestamp: new Date().toISOString(),
-      status: "READY_TO_SEND_OLT"
+    // Validación agregada del ViewStub: si es Edificio, sus parámetros internos no deben ir vacíos
+    if (ubicacion === "Interior/Edificio") {
+      const bName = document.getElementById('inputBuildingName').value.trim();
+      const tNum = document.getElementById('inputTowerNumber').value.trim();
+      const fNum = document.getElementById('inputFloorNumber').value.trim();
+
+      if (!bName || !tNum || !fNum) {
+        alert("❌ Error de Infraestructura:\nAl seleccionar 'Interior/Edificio' es obligatorio capturar el Nombre de Edificio, Torre y Piso.");
+        return;
+      }
+    }
+
+    // Payload idéntico mapeado listo para enviar a Cloudflare Workers
+    const payloadPlantaExterna = {
+      oltData: olt,
+      tipoUbicacion: ubicacion,
+      marcaEquipo: marca,
+      ratioSplitter: ratio,
+      tipoInmueble: inmueble,
+      idSplitter: splitter,
+      detallesEdificio: ubicacion === "Interior/Edificio" ? {
+        buildingName: document.getElementById('inputBuildingName').value.trim(),
+        towerNumber: document.getElementById('inputTowerNumber').value.trim(),
+        floorNumber: document.getElementById('inputFloorNumber').value.trim(),
+        apartmentNumber: document.getElementById('inputApartmentNumber').value.trim(),
+        totalFloors: document.getElementById('inputNumberFloors').value
+      } : null,
+      timestamp: new Date().toISOString()
     };
 
-    console.log("Payload generado listo para enviar a Cloudflare Workers:", payloadFFM);
-    alert(`✓ Datos validados correctamente.\nPayload listo para transmitirse al endpoint:\n/dsfc-materiales/registra-equipos-preescaneados\n\nSplitter ID: ${payloadFFM.idSplitter}`);
+    console.log("Transmisión de datos empaquetada FFM:", payloadPlantaExterna);
+    alert(`✓ Petición generada con éxito.\nAcción: "Actualizando OLT"\n\nSplitter validado e integrado: ${payloadPlantaExterna.idSplitter}`);
   }
 </script>
 </body>
