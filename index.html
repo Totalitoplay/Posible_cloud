@@ -365,7 +365,10 @@
 //  CONFIGURACIÓN API
 // ──────────────────────────────────────────────
 // Usa window.PROXY_URL (configurable en el banner) o fallback
-  const BASE_URL = () => (window.PROXY_URL || localStorage.getItem('dsfc_proxy') || 'https://TU-WORKER.workers.dev');
+  const BASE_URL = () => {
+  let url = window.PROXY_URL || localStorage.getItem('dsfc_proxy') || 'https://TU-WORKER.workers.dev';
+  return url.replace(/\/$/, ''); // Elimina la barra final si existe
+};
 let authToken = null;
 let currentUser = null;
 
