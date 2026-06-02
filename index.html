@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOC - Monitor de Planta Externa</title>
+    <title>NOC - Monitor Interno de Red</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/dist/min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -13,7 +13,7 @@
         }
         .navbar-noc {
             background-color: #0f172a;
-            border-bottom: 3px solid #3b82f6;
+            border-bottom: 3px solid #ea580c;
         }
         .card-indicador {
             border: none;
@@ -36,18 +36,12 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
-        .badge-cfo { bg-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
         .status-dot {
             height: 10px;
             width: 10px;
             border-radius: 50%;
             display: inline-block;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+            background-color: #10b981;
         }
     </style>
 </head>
@@ -56,11 +50,11 @@
     <nav class="navbar navbar-expand-lg navbar-dark navbar-noc py-3 shadow">
         <div class="container-fluid">
             <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
-                <i class="fa-solid fa-circle-nodes text-danger me-2 status-dot"></i>
-                <span>NOC - SISTEMA DE MONITOREO INTERNO</span>
+                <span class="status-dot me-2"></span>
+                <span>NOC - SINCRO LIVE</span>
             </a>
             <div class="d-flex align-items-center text-white gap-3">
-                <span class="d-none d-md-inline text-light"><i class="fa-solid fa-user-shield me-1"></i> Ing. Planta Externa</span>
+                <span class="badge bg-dark p-2 text-warning border border-warning" id="estado-conexion">Conectando...</span>
                 <span class="badge bg-success p-2" id="reloj">00:00:00</span>
             </div>
         </div>
@@ -73,7 +67,7 @@
                 <div class="card card-indicador bg-total p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Total Incidencias</h6>
+                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Alertas Activas</h6>
                             <h2 class="fw-bold m-0 mt-1" id="num-total">0</h2>
                         </div>
                         <i class="fa-solid fa-network-wired fa-2x text-white-50"></i>
@@ -84,7 +78,7 @@
                 <div class="card card-indicador bg-cfo p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Corte Fibra (CFO)</h6>
+                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Cortes (CFO)</h6>
                             <h2 class="fw-bold m-0 mt-1" id="num-cfo">0</h2>
                         </div>
                         <i class="fa-solid fa-scissors fa-2x text-white-50"></i>
@@ -106,7 +100,7 @@
                 <div class="card card-indicador bg-pow p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Falla Energía (POW)</h6>
+                            <h6 class="text-uppercase text-white-50 small fw-bold m-0">Energía (POW)</h6>
                             <h2 class="fw-bold m-0 mt-1" id="num-pow">0</h2>
                         </div>
                         <i class="fa-solid fa-bolt-lightning fa-2x text-white-50"></i>
@@ -116,19 +110,14 @@
         </div>
 
         <div class="row g-3 mb-4">
-            <div class="col-12 col-md-8">
+            <div class="col-12">
                 <div class="bg-white p-3 rounded-3 shadow-sm d-flex gap-2">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                        <input type="text" id="buscador" class="form-control border-start-0 bg-light" placeholder="Filtrar por OLT, Distrito, Nodo o Cuenta de Cliente..." onkeyup="ejecutarFiltroGeneral()">
+                        <input type="text" id="buscador" class="form-control border-start-0 bg-light" placeholder="Escribe el nombre de un equipo, OLT, distrito o región técnica..." onkeyup="ejecutarFiltroGeneral()">
                     </div>
-                    <button class="btn btn-dark" onclick="inicializarDatos()"><i class="fa-solid fa-arrows-rotate"></i></button>
+                    <button class="btn btn-outline-dark" onclick="solicitarDatosReales()"><i class="fa-solid fa-arrows-rotate"></i></button>
                 </div>
-            </div>
-            <div class="col-12 col-md-4 d-grid">
-                <button class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoReporte">
-                    <i class="fa-solid fa-plus me-2"></i>Levantar Reporte de Red
-                </button>
             </div>
         </div>
 
@@ -137,177 +126,105 @@
                 <div class="tabla-contenedor p-3">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="m-0 fw-bold text-secondary">
-                            <i class="fa-solid fa-rectangle-list me-2"></i>Monitoreo de Infraestructura Activa
+                            <i class="fa-solid fa-list-check me-2"></i>Alarmas Registradas en Producción
                         </h5>
-                        <span class="badge bg-light text-dark border" id="filtro-actual">Filtro: Todos</span>
+                        <span class="badge bg-secondary" id="tag-filtro">Vista: Todos</span>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle m-0" id="tablaMaster">
                             <thead class="table-light border-bottom">
                                 <tr>
-                                    <th>Equipo / OLT</th>
-                                    <th>Tipo</th>
-                                    <th>Distrito / Ubicación</th>
-                                    <th>Potencia Promedio</th>
+                                    <th>Elemento de Red / OLT</th>
+                                    <th>Tipo de Evento</th>
+                                    <th>Región / Entidad</th>
                                     <th>Clientes Afectados</th>
-                                    <th>Inicio de Falla</th>
-                                    <th class="text-center">Acciones</th>
+                                    <th>Inicio Reportado</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalDetalle" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title fw-bold" id="detalleTitulo">Detalle de Afectación</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body bg-light">
-                    <div class="row g-3 mb-3">
-                        <div class="col-6 col-sm-3">
-                            <div class="p-2 bg-white rounded border text-center">
-                                <small class="text-muted d-block">Potencia Activa</small>
-                                <strong class="fs-5" id="detPotencia">-- dBm</strong>
-                            </div>
-                        </div>
-                        <div class="col-6 col-sm-3">
-                            <div class="p-2 bg-white rounded border text-center">
-                                <small class="text-muted d-block">Tipo Alerta</small>
-                                <strong class="fs-5 text-danger" id="detTipo">--</strong>
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <div class="p-2 bg-white rounded border text-center">
-                                <small class="text-muted d-block">Nodo Técnico</small>
-                                <strong class="fs-6" id="detDistrito">--</strong>
-                            </div>
-                        </div>
-                    </div>
-                    <h6 class="fw-bold mb-2"><i class="fa-solid fa-users me-2 text-primary"></i>Cuentas ONT Afectadas en Puerto</h6>
-                    <div class="table-responsive bg-white rounded border" style="max-height: 250px; overflow-y: auto;">
-                        <table class="table table-sm table-striped m-0 small" id="tablaClientes">
-                            <thead class="table-dark sticky-top">
                                 <tr>
-                                    <th>Contrato / Cuenta</th>
-                                    <th>Slot/Port/ONU</th>
-                                    <th>Estado ONT</th>
-                                    <th>Última Lectura</th>
+                                    <td colspan="5" class="text-center text-muted py-4">Esperando respuesta del Cloudflare Worker...</td>
                                 </tr>
-                            </thead>
-                            <tbody></tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar Monitor</button>
-                </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="modalNuevoReporte" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold">Insertar Evento Manual</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="formReporte" onsubmit="agregarIncidencia(event)">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Nombre del Equipo / OLT</label>
-                            <input type="text" class="form-control" id="formOlt" required placeholder="Ej: OLT_SATELITE_05">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Tipo de Incidencia</label>
-                            <select class="form-select" id="formTipo" required>
-                                <option value="CFO">CFO - Corte de Fibra Óptica</option>
-                                <option value="AFO">AFO - Atenuación de Fibra Óptica</option>
-                                <option value="POW">POW - Falla de Energía Eléctrica</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Distrito / Sector geográfico</label>
-                            <input type="text" class="form-control" id="formUbicacion" required placeholder="Ej: Juárez Satélite">
-                        </div>
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <label class="form-label fw-bold">Potencia (dBm)</label>
-                                <input type="text" class="form-control" id="formPotencia" required placeholder="Ej: -31.50">
-                            </div>
-                            <div class="col-6 mb-3">
-                                <label class="form-label fw-bold">Clientes Afectados</label>
-                                <input type="number" class="form-control" id="formClientes" required placeholder="Ej: 14">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Inyectar en Red</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/dist/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Base de Datos en memoria RAM interna (Simula llamadas al Backend)
-        let datasetIncidencias = [
-            { id: 1, olt: "OLT_SANTO_DOMINGO_JUA", tipo: "CFO", ubicacion: "Juárez Centro", potencia: "-40.00 dBm", clientesCount: 6, inicio: "02/06/2026 08:14", clientesList: [
-                { cuenta: "TP-0092143", frame: "1/1/0/1", estado: "LOS", lectura: "-40.2 dBm" },
-                { cuenta: "TP-0044192", frame: "1/1/0/2", estado: "LOS", lectura: "-39.8 dBm" },
-                { cuenta: "TP-0081232", frame: "1/1/0/3", estado: "LOS", lectura: "-41.0 dBm" },
-                { cuenta: "TP-0023491", frame: "1/1/0/4", estado: "LOS", lectura: "-40.5 dBm" },
-                { cuenta: "TP-0012093", frame: "1/1/0/5", estado: "LOS", lectura: "-39.9 dBm" },
-                { cuenta: "TP-0076521", frame: "1/1/0/6", estado: "LOS", lectura: "-40.1 dBm" }
-            ]},
-            { id: 2, olt: "OLT_SATELITE_02_JUA", tipo: "AFO", ubicacion: "Sector Satélite", potencia: "-29.45 dBm", clientesCount: 3, inicio: "02/06/2026 10:02", clientesList: [
-                { cuenta: "TP-0881234", frame: "1/2/1/1", estado: "Degradada", lectura: "-29.1 dBm" },
-                { cuenta: "TP-0941231", frame: "1/2/1/2", estado: "Degradada", lectura: "-29.8 dBm" },
-                { cuenta: "TP-0129482", frame: "1/2/1/3", estado: "Degradada", lectura: "-29.4 dBm" }
-            ]},
-            { id: 3, olt: "NODO_SAMALAYUCA_P4", tipo: "POW", ubicacion: "Ejido Samalayuca", potencia: "0.00 dBm (No Sync)", clientesCount: 45, inicio: "02/06/2026 05:22", clientesList: [
-                { cuenta: "TP-MULTIPLE-ACCOUNTS", frame: "Gral. Power Down", estado: "DyingGasp", lectura: "DNE" }
-            ]},
-            { id: 4, olt: "OLT_SAN_JERONIMO_01", tipo: "CFO", ubicacion: "San Jerónimo Campestre", potencia: "-38.10 dBm", clientesCount: 2, inicio: "02/06/2026 11:00", clientesList: [
-                { cuenta: "TP-0112481", frame: "1/1/4/1", estado: "LOS", lectura: "-38.0 dBm" },
-                { cuenta: "TP-0334812", frame: "1/1/4/2", estado: "LOS", lectura: "-38.2 dBm" }
-            ]}
-        ];
-
+        // Endpoint configurado apuntando a tu Cloudflare Worker
+        const WORKER_URL = "https://noc-api-bridge.playtotalito.workers.dev";
+        
+        // Memoria interna de la aplicación
+        let datasetAlarmas = [];
         let filtroTipoActual = "TODOS";
 
-        // Inicializador
         window.onload = function() {
-            inicializarDatos();
-            // Ejecutar reloj de cabecera
+            solicitarDatosReales();
+            
+            // Reloj en tiempo real en la barra superior
             setInterval(() => {
                 document.getElementById('reloj').innerText = new Date().toLocaleTimeString();
             }, 1000);
+
+            // Consultar actualizaciones automáticamente cada 3 minutos
+            setInterval(solicitarDatosReales, 180000);
         };
 
-        function inicializarDatos() {
-            renderizarContadores();
-            ejecutarFiltroGeneral();
+        // Función principal que consume el Worker
+        async function solicitarDatosReales() {
+            const indicadorConexion = document.getElementById('estado-conexion');
+            indicadorConexion.className = "badge bg-warning text-dark";
+            indicadorConexion.innerText = "Sincronizando...";
+
+            try {
+                let respuesta = await fetch(WORKER_URL);
+                if (!respuesta.ok) {
+                    throw new Error(`HTTP Error: ${respuesta.status}`);
+                }
+                
+                // Conversión de datos reales
+                let JSON_NOC = await respuesta.json();
+                
+                // Normalización de propiedades: Dependiendo de cómo mapee el backend,
+                // nos aseguramos de asignar los valores correspondientes.
+                datasetAlarmas = JSON_NOC.map((item, index) => {
+                    return {
+                        id: item.id || index,
+                        olt: item.olt || item.oltName || item.elemento || "ELEMENTO_DESCONOCIDO",
+                        tipo: (item.tipo || item.tipoAlarma || "CFO").toUpperCase().trim(),
+                        region: item.ubicacion || item.region || item.distrito || "N/A",
+                        clientes: item.clientesCount || item.userCount || item.afectados || 0,
+                        fecha: item.inicio || item.fechaInicio || "--/--/--"
+                    };
+                });
+
+                indicadorConexion.className = "badge bg-success";
+                indicadorConexion.innerText = "ONLINE";
+
+                renderizarContadores();
+                ejecutarFiltroGeneral();
+
+            } catch (error) {
+                console.error("Error en la sincronización:", error);
+                indicadorConexion.className = "badge bg-danger";
+                indicadorConexion.innerText = "ERROR DE ENLACE";
+                
+                const tbody = document.querySelector("#tablaMaster tbody");
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4"><i class="fa-solid fa-triangle-exclamation me-2"></i>No se pudo obtener respuesta de tu Worker. Verifica la validez de la Cookie interna.</td></tr>`;
+            }
         }
 
-        // Calcula dinámicamente las tarjetas numéricas de arriba
+        // Calcula el total de elementos activos por categoría
         function renderizarContadores() {
-            let total = datasetIncidencias.length;
-            let cfos = datasetIncidencias.filter(x => x.tipo === "CFO").length;
-            let afos = datasetIncidencias.filter(x => x.tipo === "AFO").length;
-            let pows = datasetIncidencias.filter(x => x.tipo === "POW").length;
+            let total = datasetAlarmas.length;
+            let cfos = datasetAlarmas.filter(x => x.tipo === "CFO" || x.tipo === "CORTE").length;
+            let afos = datasetAlarmas.filter(x => x.tipo === "AFO" || x.tipo === "ATENUACION").length;
+            let pows = datasetAlarmas.filter(x => x.tipo === "POW" || x.tipo === "ENERGIA").length;
 
             document.getElementById('num-total').innerText = total;
             document.getElementById('num-cfo').innerText = cfos;
@@ -315,138 +232,53 @@
             document.getElementById('num-pow').innerText = pows;
         }
 
-        // Aplica el filtrado por clics de tarjetas + input del buscador al mismo tiempo
-        function ejecutarFiltroGeneral() {
-            let textoBusqueda = document.getElementById('buscador').value.toLowerCase();
-            
-            let datosFiltrados = datasetIncidencias.filter(item => {
-                // Validación tipo tarjeta
-                let coincideTipo = (filtroTipoActual === "TODOS" || item.tipo === filtroTipoActual);
-                // Validación barra buscador
-                let coincideTexto = item.olt.toLowerCase().includes(textoBusqueda) || 
-                                     item.ubicacion.toLowerCase().includes(textoBusqueda) || 
-                                     item.tipo.toLowerCase().includes(textoBusqueda);
-                
-                return coincideTipo && coincideTexto;
-            });
-
-            inyectarTabla(datosFiltrados);
-        }
-
         function filtrarPorTipo(tipo) {
             filtroTipoActual = tipo;
-            document.getElementById('filtro-actual').innerText = `Filtro: ${tipo}`;
+            document.getElementById('tag-filtro').innerText = `Vista: ${tipo}`;
             ejecutarFiltroGeneral();
         }
 
-        // Dibuja el HTML de la tabla
-        function inyectarTabla(datos) {
+        // Procesa las búsquedas del campo de texto combinadas con los clics de los contadores
+        function ejecutarFiltroGeneral() {
+            let busqueda = document.getElementById('buscador').value.toLowerCase().trim();
+
+            let datosFiltrados = datasetAlarmas.filter(item => {
+                let coincideTipo = (filtroTipoActual === "TODOS" || item.tipo === filtroTipoActual);
+                let coincideTexto = item.olt.toLowerCase().includes(busqueda) || 
+                                     item.region.toLowerCase().includes(busqueda) || 
+                                     item.tipo.toLowerCase().includes(busqueda);
+                return coincideTipo && coincideTexto;
+            });
+
+            dibujarTabla(datosFiltrados);
+        }
+
+        // Dibuja dinámicamente las filas HTML recibidas de producción
+        function dibujarTabla(datos) {
             const tbody = document.querySelector("#tablaMaster tbody");
             tbody.innerHTML = "";
 
             if (datos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Sin alarmas registradas bajo este criterio.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">No se encontraron alarmas que coincidan con el criterio actual.</td></tr>`;
                 return;
             }
 
             datos.forEach(row => {
                 let badgeClase = "bg-danger";
-                if(row.tipo === "AFO") badgeClase = "bg-warning text-dark";
-                if(row.tipo === "POW") badgeClase = "bg-primary";
+                if(row.tipo === "AFO" || row.tipo === "ATENUACION") badgeClase = "bg-warning text-dark";
+                if(row.tipo === "POW" || row.tipo === "ENERGIA") badgeClase = "bg-primary";
 
                 let tr = `
                     <tr>
                         <td class="fw-bold text-dark">${row.olt}</td>
                         <td><span class="badge ${badgeClase}">${row.tipo}</span></td>
-                        <td>${row.ubicacion}</td>
-                        <td><code class="text-dark fw-bold">${row.potencia}</code></td>
-                        <td><span class="text-secondary fw-bold"><i class="fa-solid fa-house-laptop me-1"></i>${row.clientesCount}</span></td>
-                        <td class="small text-muted">${row.inicio}</td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-dark px-3 fw-bold" onclick="abrirDetalle(${row.id})">
-                                <i class="fa-solid fa-magnifying-glass-chart me-1"></i> Analizar
-                            </button>
-                        </td>
+                        <td><i class="fa-solid fa-location-dot me-1 text-muted"></i>${row.region}</td>
+                        <td class="fw-bold text-secondary"><i class="fa-solid fa-users me-1"></i>${row.clientes}</td>
+                        <td class="small text-muted">${row.fecha}</td>
                     </tr>
                 `;
                 tbody.innerHTML += tr;
             });
-        }
-
-        // Abre el modal simulando el desglose de clientes e hilos de fibra
-        function abrirDetalle(id) {
-            let objeto = datasetIncidencias.find(x => x.id === id);
-            if(!objeto) return;
-
-            document.getElementById('detalleTitulo').innerText = `Monitor Técnico: ${objeto.olt}`;
-            document.getElementById('detPotencia').innerText = objeto.potencia;
-            document.getElementById('detTipo').innerText = objeto.tipo;
-            document.getElementById('detDistrito').innerText = objeto.ubicacion;
-
-            const tbodyClientes = document.querySelector("#tablaClientes tbody");
-            tbodyClientes.innerHTML = "";
-
-            objeto.clientesList.forEach(c => {
-                let statusBadge = c.estado === 'LOS' ? 'bg-danger' : (c.estado === 'DyingGasp' ? 'bg-dark' : 'bg-warning text-dark');
-                let row = `
-                    <tr>
-                        <td class="fw-bold text-primary">${c.cuenta}</td>
-                        <td>${c.frame}</td>
-                        <td><span class="badge ${statusBadge}">${c.estado}</span></td>
-                        <td><code>${c.lectura}</code></td>
-                    </tr>
-                `;
-                tbodyClientes.innerHTML += row;
-            });
-
-            let modal = new bootstrap.Modal(document.getElementById('modalDetalle'));
-            modal.show();
-        }
-
-        // Permite agregar un nuevo elemento desde el formulario interactivo
-        function agregarIncidencia(e) {
-            e.preventDefault();
-            
-            let olt = document.getElementById('formOlt').value;
-            let tipo = document.getElementById('formTipo').value;
-            let ubicacion = document.getElementById('formUbicacion').value;
-            let potencia = document.getElementById('formPotencia').value + " dBm";
-            let clientes = parseInt(document.getElementById('formClientes').value);
-
-            // Crear simulación de lista interna de clientes afectados para ese nuevo elemento
-            let listaSimulada = [];
-            for(let i=1; i<=clientes; i++){
-                listaSimulada.push({
-                    cuenta: `TP-09${Math.floor(10000 + Math.random() * 90000)}`,
-                    frame: `1/1/${Math.floor(Math.random()*4)}/${i}`,
-                    estado: tipo === "CFO" ? "LOS" : (tipo === "POW" ? "DyingGasp" : "Degradada"),
-                    lectura: potencia
-                });
-            }
-
-            let nuevoId = datasetIncidencias.length ? Math.max(...datasetIncidencias.map(o => o.id)) + 1 : 1;
-            let ahora = new Date();
-            let fechaString = `${ahora.getDate().toString().padStart(2,'0')}/${(ahora.getMonth()+1).toString().padStart(2,'0')}/${ahora.getFullYear()} ${ahora.getHours().toString().padStart(2,'0')}:${ahora.getMinutes().toString().padStart(2,'0')}`;
-
-            datasetIncidencias.unshift({
-                id: nuevoId,
-                olt: olt.toUpperCase().trim(),
-                tipo: tipo,
-                ubicacion: ubicacion,
-                potencia: potencia,
-                clientesCount: clientes,
-                inicio: fechaString,
-                clientesList: listaSimulada
-            });
-
-            // Cerrar modal y limpiar campos
-            document.getElementById('formReporte').reset();
-            let modalEl = document.getElementById('modalNuevoReporte');
-            let modalInstance = bootstrap.Modal.getInstance(modalEl);
-            modalInstance.hide();
-
-            // Refrescar vistas
-            inicializarDatos();
         }
     </script>
 </body>
