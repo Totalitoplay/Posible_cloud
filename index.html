@@ -140,6 +140,68 @@
 </style>
 </head>
 <body>
+<!-- CONFIG BANNER -->
+<style>
+#configBanner { background:#fff3e0; border-bottom:2px solid #e65100; padding:12px 18px; font-family:'DM Sans',sans-serif; font-size:13px; color:#bf360c; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+#configBanner input { flex:1; min-width:240px; padding:6px 10px; border:1.5px solid #e65100; border-radius:6px; font-size:13px; font-family:monospace; outline:none; }
+#configBanner .savebtn { background:#e65100; color:white; border:none; padding:7px 16px; border-radius:6px; font-weight:700; cursor:pointer; font-size:13px; white-space:nowrap; }
+#configBanner .closebtn { background:transparent; color:#e65100; border:none; cursor:pointer; font-size:20px; }
+</style>
+<div id="configBanner">
+  <strong>⚠️ Proxy URL:</strong>
+  <input id="proxyInput" type="text" placeholder="https://dsfc-proxy.TU.workers.dev" />
+  <button class="savebtn" onclick="saveCfg()">Guardar</button>
+  <button class="closebtn" onclick="document.getElementById('configBanner').style.display='none'">✕</button>
+</div>
+<script>
+  function saveCfg(){
+    var v = document.getElementById('proxyInput').value.trim();
+    if(!v){ alert('Ingresa la URL del worker'); return; }
+    window.PROXY_URL = v;
+    localStorage.setItem('dsfc_proxy', v);
+    var b = document.getElementById('configBanner');
+    b.style.background='#e8f5e9'; b.style.borderColor='#2e7d32'; b.style.color='#1b5e20';
+    b.querySelector('strong').textContent='✓ Proxy activo:';
+  }
+  window.addEventListener('DOMContentLoaded', function(){
+    var saved = localStorage.getItem('dsfc_proxy');
+    if(saved){ window.PROXY_URL = saved; document.getElementById('proxyInput').value = saved; saveCfg(); }
+  });
+</script>
+
+<!-- ===== CONFIG BANNER ===== -->
+<div id="configBanner" style="background:#fff3e0;border-bottom:2px solid #e65100;padding:12px 18px;font-family:'DM Sans',sans-serif;font-size:13px;color:#bf360c;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+  <strong>⚠️ Configuración requerida:</strong>
+  URL del proxy (Worker):
+  <input id="proxyInput" type="text" placeholder="https://dsfc-proxy.TU.workers.dev"
+    style="flex:1;min-width:260px;padding:6px 10px;border:1.5px solid #e65100;border-radius:6px;font-size:13px;font-family:monospace;outline:none"
+    oninput="window.PROXY_URL = this.value.trim()" />
+  <button onclick="saveCfg()" style="background:#e65100;color:white;border:none;padding:7px 16px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px">Guardar</button>
+  <button onclick="hideCfg()" style="background:transparent;color:#e65100;border:none;cursor:pointer;font-size:20px;margin-left:4px">✕</button>
+</div>
+<script>
+  (function(){
+    var saved = localStorage.getItem('dsfc_proxy');
+    if(saved){ window.PROXY_URL = saved; document.getElementById('proxyInput') && (document.getElementById('proxyInput').value = saved); }
+  })();
+  function saveCfg(){
+    var v = document.getElementById('proxyInput').value.trim();
+    if(!v){ alert('Ingresa la URL del worker'); return; }
+    window.PROXY_URL = v;
+    localStorage.setItem('dsfc_proxy', v);
+    document.getElementById('configBanner').style.background='#e8f5e9';
+    document.getElementById('configBanner').style.borderColor='#2e7d32';
+    document.getElementById('configBanner').style.color='#1b5e20';
+    document.querySelector('#configBanner strong').textContent = '✓ Proxy configurado:';
+  }
+  function hideCfg(){ document.getElementById('configBanner').style.display='none'; }
+  // Auto-load saved proxy
+  window.addEventListener('DOMContentLoaded', function(){
+    var saved = localStorage.getItem('dsfc_proxy');
+    if(saved){ window.PROXY_URL = saved; document.getElementById('proxyInput').value = saved; saveCfg(); }
+  });
+</script>
+
 
 <!-- LOGIN SCREEN -->
 <div id="loginScreen">
@@ -311,7 +373,8 @@
 // ──────────────────────────────────────────────
 //  CONFIGURACIÓN API
 // ──────────────────────────────────────────────
-const BASE_URL = 'https://dsfc-prod.dralmey.com.uy';
+// Usa window.PROXY_URL (configurable en el banner) o fallback
+  const BASE_URL = () => (window.PROXY_URL || localStorage.getItem('dsfc_proxy') || 'https://TU-WORKER.workers.dev');
 let authToken = null;
 let currentUser = null;
 
@@ -321,7 +384,7 @@ let currentUser = null;
 async function apiPost(path, body, useAuth = false) {
   const headers = { 'Content-Type': 'application/json' };
   if (useAuth && authToken) headers['Authorization'] = `Bearer ${authToken}`;
-  const res = await fetch(BASE_URL + path, { method: 'POST', headers, body: JSON.stringify(body) });
+  const res = await fetch(BASE_URL() + path, { method: 'POST', headers, body: JSON.stringify(body) });
   const data = await res.json().catch(() => ({}));
   return { ok: res.ok, status: res.status, data };
 }
@@ -329,7 +392,7 @@ async function apiPost(path, body, useAuth = false) {
 async function apiGet(path) {
   const headers = { 'Content-Type': 'application/json' };
   if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-  const res = await fetch(BASE_URL + path, { method: 'GET', headers });
+  const res = await fetch(BASE_URL() + path, { method: 'GET', headers });
   const data = await res.json().catch(() => ({}));
   return { ok: res.ok, status: res.status, data };
 }
@@ -337,7 +400,7 @@ async function apiGet(path) {
 async function apiPatch(path, body) {
   const headers = { 'Content-Type': 'application/json' };
   if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-  const res = await fetch(BASE_URL + path, { method: 'PATCH', headers, body: JSON.stringify(body) });
+  const res = await fetch(BASE_URL() + path, { method: 'PATCH', headers, body: JSON.stringify(body) });
   const data = await res.json().catch(() => ({}));
   return { ok: res.ok, status: res.status, data };
 }
